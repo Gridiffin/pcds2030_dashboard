@@ -187,9 +187,11 @@ require_once '../../layouts/page_header.php';
                                             <a href="submit_draft_outcome.php?outcome_id=<?= $draft['metric_id'] ?>" class="btn btn-sm btn-outline-success" onclick="return confirm('Are you sure you want to submit this draft outcome?');">
                                                 <i class="fas fa-check me-1"></i> Submit
                                             </a>
+                                            <?php if (function_exists('is_focal') && is_focal()): ?>
                                             <a href="<?php echo APP_URL; ?>/app/views/admin/outcomes/delete_outcome.php?outcome_id=<?= $draft['metric_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this outcome draft?');">
                                                 <i class="fas fa-trash-alt me-1"></i> Delete
                                             </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

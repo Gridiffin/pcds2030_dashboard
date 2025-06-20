@@ -281,7 +281,7 @@ require_once '../../layouts/page_header.php';
                             <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <i class="fas fa-save me-1"></i> Create
                             </button>
-                            <a href="<?php echo APP_URL; ?>/app/views/agency/outcomes/submit_outcomes.php" class="btn btn-outline-secondary">
+                            <a href="<?php echo APP_URL; ?>/app/views/agency/outcomes/create_outcomes_detail.php" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i> Cancel
                             </a>
                         </div>
@@ -338,9 +338,11 @@ require_once '../../layouts/page_header.php';
                                                     <button class="btn btn-sm btn-outline-primary flex-fill" onclick="editMetricDetail(<?= $detail['id'] ?>)">
                                                         <i class="fas fa-edit me-1"></i> Edit
                                                     </button>
+                                                    <?php if (function_exists('is_focal') && is_focal()): ?>
                                                     <button class="btn btn-sm btn-outline-danger" onclick="deleteMetricDetail(<?= $detail['id'] ?>)">
                                                         <i class="fas fa-trash me-1"></i> Delete
                                                     </button>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
