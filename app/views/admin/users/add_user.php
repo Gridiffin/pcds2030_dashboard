@@ -149,9 +149,9 @@ require_once '../../layouts/page_header.php';
                 <h6 class="fw-bold mb-3">Agency Information <span class="text-danger">(Required for Agency Users)</span></h6>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="agency_name" class="form-label">Agency Name *</label>
+                        <label for="agency_name" class="form-label">Agency Information *</label>
                         <input type="text" class="form-control" id="agency_name" name="agency_name">
-                        <div class="form-text">Enter the full official name of the agency.</div>
+                        <div class="form-text">Enter the name of the agency.</div>
                     </div>
                     
                     <div class="col-md-6">
