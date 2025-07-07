@@ -186,6 +186,9 @@ require_once '../../layouts/page_header.php';
                                         <button class="btn btn-sm btn-outline-primary flex-fill" onclick="editMetricDetail(<?= $detail['id'] ?>)">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMetricDetail(<?= $detail['id'] ?>)">
+                                            <i class="fas fa-trash me-1"></i> Delete
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -228,6 +231,11 @@ require_once '../../layouts/page_header.php';
                                            class="btn btn-sm btn-outline-info" title="History">
                                             <i class="fas fa-history"></i>
                                         </a>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteOutcome('<?= $outcome['metric_id'] ?>')" 
+                                                title="Delete Outcome">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -296,6 +304,11 @@ require_once '../../layouts/page_header.php';
                                            title="View Change History">
                                             <i class="fas fa-history"></i>
                                         </a>
+                                        <button class="btn btn-outline-danger" 
+                                                onclick="deleteOutcome('<?php echo $outcome['metric_id']; ?>')" 
+                                                title="Delete Outcome">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -392,6 +405,31 @@ require_once '../../layouts/page_header.php';
   </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> This action cannot be undone.
+        </div>
+        <p id="deleteConfirmMessage">Are you sure you want to delete this item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const refreshBtn = document.getElementById('refreshPage');
@@ -402,6 +440,8 @@ require_once '../../layouts/page_header.php';
         // Important Outcomes editing functionality (from agency side)
         const metricDetails = <?= json_encode($detailsArray) ?>;
         let editingDetailId = null;
+        let deleteItemType = null;
+        let deleteItemId = null;
 
         function escapeHtml(text) {
             const map = {'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;','\'': '&#039;'};
@@ -415,6 +455,105 @@ require_once '../../layouts/page_header.php';
                 container.style.display = 'block';
                 setTimeout(() => { container.style.display = 'none'; }, 5000);
             }
+        }
+
+        // Delete functionality
+        window.deleteMetricDetail = function(id) {
+            const detail = metricDetails.find(d => Number(d.id) === Number(id));
+            if (!detail) return showAlert('Detail not found', 'error');
+            
+            deleteItemType = 'detail';
+            deleteItemId = id;
+            document.getElementById('deleteConfirmMessage').textContent = 
+                `Are you sure you want to delete the outcome detail "${detail.title}"? This action cannot be undone.`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+        };
+
+        window.deleteOutcome = function(metricId) {
+            deleteItemType = 'outcome';
+            deleteItemId = metricId;
+            document.getElementById('deleteConfirmMessage').textContent = 
+                `Are you sure you want to delete this outcome (ID: ${metricId})? This action cannot be undone and will remove all associated data.`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+        };
+
+        // Confirm delete button handler
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (deleteItemType === 'detail') {
+                deleteDetailConfirmed();
+            } else if (deleteItemType === 'outcome') {
+                deleteOutcomeConfirmed();
+            }
+        });
+
+        function deleteDetailConfirmed() {
+            const btn = document.getElementById('confirmDeleteBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Deleting...';
+            
+            const formData = new FormData();
+            formData.append('detail_id', deleteItemId);
+            
+            fetch('<?php echo APP_URL; ?>/app/views/admin/outcomes/delete_outcome_detail.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    showAlert('Outcome detail deleted successfully.', 'success');
+                    location.reload();
+                } else {
+                    showAlert(data.message || 'Failed to delete outcome detail.', 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Failed to delete outcome detail.', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function deleteOutcomeConfirmed() {
+            const btn = document.getElementById('confirmDeleteBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Deleting...';
+            
+            const formData = new FormData();
+            formData.append('metric_id', deleteItemId);
+            
+            fetch('<?php echo APP_URL; ?>/app/views/admin/outcomes/delete_outcome.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    showAlert('Outcome deleted successfully.', 'success');
+                    location.reload();
+                } else {
+                    showAlert(data.message || 'Failed to delete outcome.', 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Failed to delete outcome.', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
         }
 
         window.editMetricDetail = function(id) {
