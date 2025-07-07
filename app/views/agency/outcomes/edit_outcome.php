@@ -126,11 +126,25 @@ if ($is_flexible) {
     // New flexible structure
     $rows = $row_config['rows'] ?? [];
     $columns = $column_config['columns'] ?? [];
+    
+    // Ensure columns have proper IDs - fix any missing or incorrect IDs
+    foreach ($columns as $index => &$column) {
+        if (!isset($column['id'])) {
+            $column['id'] = $column['label'] ?? $index;
+        }
+    }
+    unset($column); // Break reference
 } elseif (isset($outcome_data['columns'], $outcome_data['data']) && is_array($outcome_data['columns']) && is_array($outcome_data['data'])) {
     // New JSON structure: columns and data keys
-    $columns = array_map(function($col) {
-        return ['id' => $col, 'label' => $col, 'type' => 'number', 'unit' => ''];
-    }, $outcome_data['columns']);
+    if (is_array($outcome_data['columns'][0] ?? null)) {
+        // Array of column objects
+        $columns = $outcome_data['columns'];
+    } else {
+        // Simple array of column names
+        $columns = array_map(function($col) {
+            return ['id' => $col, 'label' => $col, 'type' => 'number', 'unit' => ''];
+        }, $outcome_data['columns']);
+    }
     $rows = array_map(function($row_id) {
         return ['id' => $row_id, 'label' => $row_id, 'type' => 'data'];
     }, array_keys($outcome_data['data']));
@@ -150,6 +164,19 @@ if ($is_flexible) {
     }, $metric_names);
 }
 
+// Create a mapping from column config IDs to actual data keys
+$column_id_mapping = [];
+if (!empty($columns)) {
+    foreach ($columns as $index => $column) {
+        if (isset($column['label'])) {
+            // Map column config index to the actual label used in data
+            $column_id_mapping[$column['id']] = $column['label'];
+            $column_id_mapping[$index] = $column['label'];
+            $column_id_mapping[$column['label']] = $column['label'];
+        }
+    }
+}
+
 // Organize data for display
 $table_data = [];
 // Support both legacy and new JSON structure with 'data' key
@@ -165,10 +192,28 @@ if (isset($outcome_data['data']) && is_array($outcome_data['data'])) {
     $rows = array_map(function($row_id) {
         return ['id' => $row_id, 'label' => $row_id, 'type' => 'data'];
     }, $row_labels);
+    
     foreach ($rows as $row_def) {
         $row_data = ['row' => $row_def, 'metrics' => []];
         if (isset($outcome_data['data'][$row_def['id']]) && is_array($outcome_data['data'][$row_def['id']])) {
-            $row_data['metrics'] = $outcome_data['data'][$row_def['id']];
+            $raw_metrics = $outcome_data['data'][$row_def['id']];
+            // Map the raw data keys to column IDs using the column mapping
+            foreach ($columns as $column) {
+                $column_id = $column['id'];
+                $column_label = $column['label'];
+                
+                // Try different key variations to find the actual data
+                $value = 0;
+                if (isset($raw_metrics[$column_label])) {
+                    $value = $raw_metrics[$column_label];
+                } elseif (isset($raw_metrics[$column_id])) {
+                    $value = $raw_metrics[$column_id];
+                } elseif (isset($raw_metrics[(string)$column_id])) {
+                    $value = $raw_metrics[(string)$column_id];
+                }
+                
+                $row_data['metrics'][$column_id] = $value;
+            }
         }
         $table_data[] = $row_data;
     }
@@ -177,7 +222,24 @@ if (isset($outcome_data['data']) && is_array($outcome_data['data'])) {
     foreach ($rows as $row_def) {
         $row_data = ['row' => $row_def, 'metrics' => []];
         if (isset($outcome_data[$row_def['id']])) {
-            $row_data['metrics'] = $outcome_data[$row_def['id']];
+            $raw_metrics = $outcome_data[$row_def['id']];
+            // Map the raw data keys to column IDs using the column mapping
+            foreach ($columns as $column) {
+                $column_id = $column['id'];
+                $column_label = $column['label'];
+                
+                // Try different key variations to find the actual data
+                $value = 0;
+                if (isset($raw_metrics[$column_label])) {
+                    $value = $raw_metrics[$column_label];
+                } elseif (isset($raw_metrics[$column_id])) {
+                    $value = $raw_metrics[$column_id];
+                } elseif (isset($raw_metrics[(string)$column_id])) {
+                    $value = $raw_metrics[(string)$column_id];
+                }
+                
+                $row_data['metrics'][$column_id] = $value;
+            }
         }
         $table_data[] = $row_data;
     }
@@ -351,7 +413,8 @@ require_once '../../layouts/page_header.php';
                                                 <input type="number" 
                                                        class="form-control form-control-sm data-input text-end" 
                                                        data-row="<?= htmlspecialchars($row_data['row']['id']) ?>" 
-                                                       data-column="<?= htmlspecialchars($column['id']) ?>" 
+                                                       data-column="<?= htmlspecialchars($column['id']) ?>"
+                                                       data-column-label="<?= htmlspecialchars($column['label']) ?>" 
                                                        value="<?= $row_data['metrics'][$column['id']] ?? 0 ?>" 
                                                        step="0.01">
                                             <?php endif; ?>
@@ -438,19 +501,26 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtns.forEach(function(saveBtn) {
             saveBtn.addEventListener('click', function(e) {
                 e.preventDefault(); // Prevent default button behavior
-                // Build data JSON
+                // Build data JSON - Use a more robust approach
                 const data = {};
-                rows.forEach(function(rowId) {
-                    data[rowId] = {};
-                    columns.forEach(function(col) {
-                        const colId = col.id || col;
-                        const input = document.querySelector(
-                            `input.data-input[data-row="${rowId}"][data-column="${colId}"]`
-                        );
-                        if (input) {
-                            data[rowId][colId] = parseFloat(input.value) || 0;
-                        }
-                    });
+                
+                // Get all data input fields and organize by row and column
+                const dataInputs = document.querySelectorAll('input.data-input');
+                
+                dataInputs.forEach(function(input) {
+                    const rowId = input.getAttribute('data-row');
+                    const columnId = input.getAttribute('data-column');
+                    const columnLabel = input.getAttribute('data-column-label');
+                    const value = parseFloat(input.value) || 0;
+                    
+                    if (!data[rowId]) {
+                        data[rowId] = {};
+                    }
+                    
+                    // Use column label as key for consistency with existing data structure
+                    if (columnLabel) {
+                        data[rowId][columnLabel] = value;
+                    }
                 });
                 // Build final JSON structure
                 const json = {

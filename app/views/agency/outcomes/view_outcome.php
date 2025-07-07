@@ -61,21 +61,119 @@ if (isset($_GET['saved']) && $_GET['saved'] == '1') {
 }
 
 // Parse the data structure (compatible with edit_outcome.php format)
-$data_array = $outcome_data ?? ['columns' => [], 'data' => []];
+$table_structure_type = $row['table_structure_type'] ?? 'monthly';
+$row_config = json_decode($row['row_config'] ?? '{}', true);
+$column_config = json_decode($row['column_config'] ?? '{}', true);
 
-// Ensure we have the correct structure
-if (!isset($data_array['columns']) || !isset($data_array['data'])) {
-    $data_array = ['columns' => [], 'data' => []];
+// Determine if this is a flexible structure or legacy
+$is_flexible = !empty($row_config) && !empty($column_config);
+
+if ($is_flexible) {
+    // New flexible structure
+    $rows = $row_config['rows'] ?? [];
+    $columns = $column_config['columns'] ?? [];
+    
+    // Ensure columns have proper IDs - fix any missing or incorrect IDs
+    foreach ($columns as $index => &$column) {
+        if (!isset($column['id'])) {
+            $column['id'] = $column['label'] ?? $index;
+        }
+    }
+    unset($column); // Break reference
+} elseif (isset($outcome_data['columns'], $outcome_data['data']) && is_array($outcome_data['columns']) && is_array($outcome_data['data'])) {
+    // New JSON structure: columns and data keys
+    if (is_array($outcome_data['columns'][0] ?? null)) {
+        // Array of column objects
+        $columns = $outcome_data['columns'];
+    } else {
+        // Simple array of column names
+        $columns = array_map(function($col) {
+            return ['id' => $col, 'label' => $col, 'type' => 'number', 'unit' => ''];
+        }, $outcome_data['columns']);
+    }
+    $rows = array_map(function($row_id) {
+        return ['id' => $row_id, 'label' => $row_id, 'type' => 'data'];
+    }, array_keys($outcome_data['data']));
+} else {
+    // Legacy structure - convert to flexible format
+    $metric_names = $outcome_data['columns'] ?? [];
+    
+    // Create default monthly rows
+    $month_names = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    $rows = array_map(function($month) {
+        return ['id' => $month, 'label' => $month, 'type' => 'data'];
+    }, $month_names);
+    
+    $columns = array_map(function($col) {
+        return ['id' => $col, 'label' => $col, 'type' => 'number', 'unit' => ''];
+    }, $metric_names);
 }
 
-$columns = $data_array['columns'] ?? [];
-$data = $data_array['data'] ?? [];
-
-// Get row labels from the data
-$row_labels = [];
-if (!empty($data) && is_array($data)) {
-    $row_labels = array_keys($data);
+// Organize data for display with proper column mapping
+$table_data = [];
+if (isset($outcome_data['data']) && is_array($outcome_data['data'])) {
+    $row_labels = array_keys($outcome_data['data']);
+    $rows = array_map(function($row_id) {
+        return ['id' => $row_id, 'label' => $row_id, 'type' => 'data'];
+    }, $row_labels);
+    
+    foreach ($rows as $row_def) {
+        $row_data = ['row' => $row_def, 'metrics' => []];
+        if (isset($outcome_data['data'][$row_def['id']]) && is_array($outcome_data['data'][$row_def['id']])) {
+            $raw_metrics = $outcome_data['data'][$row_def['id']];
+            // Map the raw data keys to column IDs using the column mapping
+            foreach ($columns as $column) {
+                $column_id = $column['id'];
+                $column_label = $column['label'];
+                
+                // Try different key variations to find the actual data
+                $value = 0;
+                if (isset($raw_metrics[$column_label])) {
+                    $value = $raw_metrics[$column_label];
+                } elseif (isset($raw_metrics[$column_id])) {
+                    $value = $raw_metrics[$column_id];
+                } elseif (isset($raw_metrics[(string)$column_id])) {
+                    $value = $raw_metrics[(string)$column_id];
+                }
+                
+                $row_data['metrics'][$column_id] = $value;
+            }
+        }
+        $table_data[] = $row_data;
+    }
+} else {
+    // Legacy structure: outcome_data[row_id][column_id]
+    foreach ($rows as $row_def) {
+        $row_data = ['row' => $row_def, 'metrics' => []];
+        if (isset($outcome_data[$row_def['id']])) {
+            $raw_metrics = $outcome_data[$row_def['id']];
+            // Map the raw data keys to column IDs using the column mapping
+            foreach ($columns as $column) {
+                $column_id = $column['id'];
+                $column_label = $column['label'];
+                
+                // Try different key variations to find the actual data
+                $value = 0;
+                if (isset($raw_metrics[$column_label])) {
+                    $value = $raw_metrics[$column_label];
+                } elseif (isset($raw_metrics[$column_id])) {
+                    $value = $raw_metrics[$column_id];
+                } elseif (isset($raw_metrics[(string)$column_id])) {
+                    $value = $raw_metrics[(string)$column_id];
+                }
+                
+                $row_data['metrics'][$column_id] = $value;
+            }
+        }
+        $table_data[] = $row_data;
+    }
 }
+
+// Get row labels for compatibility
+$row_labels = array_map(function($row_data) {
+    return $row_data['row']['id'];
+}, $table_data);
 
 // If no data exists, show empty state
 $has_data = !empty($columns) && !empty($row_labels);
@@ -222,21 +320,26 @@ require_once '../../layouts/page_header.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($row_labels as $row_label): ?>
+                                <?php foreach ($table_data as $row_data): ?>
                                     <tr>
                                         <td>
                                             <span class="row-badge">
-                                                <?= htmlspecialchars($row_label) ?>
+                                                <?= htmlspecialchars($row_data['row']['label']) ?>
                                             </span>
                                         </td>
                                         <?php foreach ($columns as $column): ?>
                                             <td class="text-end">
                                                 <?php 
-                                                $col_id = $column['id'] ?? $column;
-                                                $value = $data[$row_label][$col_id] ?? 0;
+                                                $value = $row_data['metrics'][$column['id']] ?? 0;
                                                 // Handle empty strings and non-numeric values safely
                                                 if (is_numeric($value) && $value !== '') {
-                                                    echo number_format((float)$value, 2);
+                                                    if (isset($column['type']) && $column['type'] === 'currency') {
+                                                        echo 'RM ' . number_format((float)$value, 2);
+                                                    } elseif (isset($column['type']) && $column['type'] === 'percentage') {
+                                                        echo number_format((float)$value, 1) . '%';
+                                                    } else {
+                                                        echo number_format((float)$value, 2);
+                                                    }
                                                 } else {
                                                     echo htmlspecialchars($value);
                                                 }
@@ -247,22 +350,31 @@ require_once '../../layouts/page_header.php';
                                 <?php endforeach; ?>
                                 
                                 <!-- Total Row -->
-                                <?php if (!empty($columns)): ?>
+                                <?php if (!empty($columns) && array_filter($columns, function($col) { return in_array($col['type'] ?? 'number', ['number', 'currency']); })): ?>
                                 <tr class="table-light">
                                     <td class="fw-bold">TOTAL</td>
                                     <?php foreach ($columns as $column): ?>
                                         <td class="fw-bold text-end">
                                             <?php
-                                            $col_id = $column['id'] ?? $column;
-                                            $total = 0;
-                                            foreach ($row_labels as $row_label) {
-                                                $cell_value = $data[$row_label][$col_id] ?? 0;
-                                                // Only add numeric values to total
-                                                if (is_numeric($cell_value) && $cell_value !== '') {
-                                                    $total += (float)$cell_value;
+                                            if (in_array($column['type'] ?? 'number', ['number', 'currency'])) {
+                                                $total = 0;
+                                                foreach ($table_data as $row_data) {
+                                                    if ($row_data['row']['type'] === 'data') {
+                                                        $cell_value = $row_data['metrics'][$column['id']] ?? 0;
+                                                        // Only add numeric values to total
+                                                        if (is_numeric($cell_value) && $cell_value !== '') {
+                                                            $total += (float)$cell_value;
+                                                        }
+                                                    }
                                                 }
+                                                if ($column['type'] === 'currency') {
+                                                    echo 'RM ' . number_format($total, 2);
+                                                } else {
+                                                    echo number_format($total, 2);
+                                                }
+                                            } else {
+                                                echo '—';
                                             }
-                                            echo number_format($total, 2);
                                             ?>
                                         </td>
                                     <?php endforeach; ?>
@@ -482,8 +594,16 @@ require_once '../../layouts/page_header.php';
 
 <!-- Pass data to JavaScript -->
 <script>
-// Prepare data for chart in a simple, compatible format
-window.tableData = <?= json_encode($data) ?>;
+// Prepare properly mapped data for chart in a simple, compatible format
+<?php
+// Convert table_data to a format compatible with JavaScript charts
+$js_data = [];
+foreach ($table_data as $row_data) {
+    $row_id = $row_data['row']['id'];
+    $js_data[$row_id] = $row_data['metrics'];
+}
+?>
+window.tableData = <?= json_encode($js_data) ?>;
 window.tableColumns = <?= json_encode($columns) ?>;
 window.tableRows = <?= json_encode($row_labels) ?>;
 

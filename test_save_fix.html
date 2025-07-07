@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Edit Outcome Save Fix</title>
+    <style>
+        .container { margin: 20px; }
+        .table { border-collapse: collapse; width: 100%; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .data-input { width: 100px; text-align: right; }
+        .btn { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .debug { background: #f8f9fa; padding: 10px; margin: 10px 0; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Test Edit Outcome Save Logic</h2>
+        
+        <div class="debug">
+            <h4>Test Data Structure</h4>
+            <p>This simulates the edit_outcome.php structure with the same column ID issues</p>
+        </div>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Row</th>
+                    <th>2022 (RM)</th>
+                    <th>2023 (RM)</th>
+                    <th>2024 (RM)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>January</td>
+                    <td><input type="number" class="data-input" data-row="January" data-column="0" data-column-label="2022" value="408531176.77" step="0.01"></td>
+                    <td><input type="number" class="data-input" data-row="January" data-column="1" data-column-label="2023" value="263569916.63" step="0.01"></td>
+                    <td><input type="number" class="data-input" data-row="January" data-column="2" data-column-label="2024" value="276004972.69" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>February</td>
+                    <td><input type="number" class="data-input" data-row="February" data-column="0" data-column-label="2022" value="239761718.38" step="0.01"></td>
+                    <td><input type="number" class="data-input" data-row="February" data-column="1" data-column-label="2023" value="226356164.30" step="0.01"></td>
+                    <td><input type="number" class="data-input" data-row="February" data-column="2" data-column-label="2024" value="191530929.47" step="0.01"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <button class="btn" onclick="testSaveLogic()">Test Save Logic</button>
+        
+        <div id="output" class="debug">
+            <h4>Output will appear here...</h4>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the columns array from PHP
+        const columns = [
+            {"id": 0, "type": "number", "unit": "RM", "label": "2022"},
+            {"id": 1, "type": "number", "unit": "RM", "label": "2023"},
+            {"id": 2, "type": "number", "unit": "RM", "label": "2024"}
+        ];
+        
+        const rows = ["January", "February"];
+        
+        function testSaveLogic() {
+            console.log('Testing save logic...');
+            
+            // Build data JSON - Use the robust approach from our fix
+            console.log('Columns:', columns);
+            console.log('Rows:', rows);
+            
+            const data = {};
+            
+            // Get all data input fields and organize by row and column
+            const dataInputs = document.querySelectorAll('input.data-input');
+            console.log('Found', dataInputs.length, 'data inputs');
+            
+            dataInputs.forEach(function(input) {
+                const rowId = input.getAttribute('data-row');
+                const columnId = input.getAttribute('data-column');
+                const columnLabel = input.getAttribute('data-column-label');
+                const value = parseFloat(input.value) || 0;
+                
+                console.log(`Input: row=${rowId}, col=${columnId}, label=${columnLabel}, value=${value}`);
+                
+                if (!data[rowId]) {
+                    data[rowId] = {};
+                }
+                
+                // Use column label as key for consistency with existing data structure
+                if (columnLabel) {
+                    data[rowId][columnLabel] = value;
+                }
+            });
+            
+            console.log('Collected data:', data);
+            
+            // Build final JSON structure
+            const json = {
+                columns: columns,
+                data: data
+            };
+            
+            // Display results
+            document.getElementById('output').innerHTML = `
+                <h4>Save Logic Test Results</h4>
+                <p><strong>Data Inputs Found:</strong> ${dataInputs.length}</p>
+                <p><strong>Collected Data:</strong></p>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+                <p><strong>Final JSON:</strong></p>
+                <pre>${JSON.stringify(json, null, 2)}</pre>
+                <p><strong>Status:</strong> ${Object.keys(data).length > 0 ? '✅ SUCCESS - Data collected correctly!' : '❌ FAILED - No data collected'}</p>
+            `;
+            
+            // Test if any values are non-zero
+            let hasNonZeroValues = false;
+            for (const rowId in data) {
+                for (const colId in data[rowId]) {
+                    if (data[rowId][colId] !== 0) {
+                        hasNonZeroValues = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (hasNonZeroValues) {
+                document.getElementById('output').innerHTML += '<p style="color: green;"><strong>✅ NON-ZERO VALUES DETECTED - Fix is working!</strong></p>';
+            } else {
+                document.getElementById('output').innerHTML += '<p style="color: red;"><strong>❌ ALL ZEROS - Fix needs more work</strong></p>';
+            }
+        }
+    </script>
+</body>
+</html>
