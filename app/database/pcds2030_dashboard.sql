@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `agency_group` (
   PRIMARY KEY (`agency_group_id`),
   KEY `sector_id` (`sector_id`),
   CONSTRAINT `agency_group_ibfk_2` FOREIGN KEY (`sector_id`) REFERENCES `sectors` (`sector_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.agency_group: ~3 rows (approximately)
 REPLACE INTO `agency_group` (`agency_group_id`, `group_name`, `sector_id`) VALUES
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
   KEY `user_id` (`user_id`),
   KEY `action` (`action`),
   KEY `created_at` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=1318 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1318 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.audit_logs: ~1,181 rows (approximately)
 REPLACE INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `status`, `created_at`) VALUES
@@ -1399,7 +1399,7 @@ CREATE TABLE IF NOT EXISTS `metrics_details` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`detail_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.metrics_details: ~3 rows (approximately)
 REPLACE INTO `metrics_details` (`detail_id`, `detail_name`, `detail_json`, `is_draft`, `created_at`, `updated_at`) VALUES
@@ -1419,7 +1419,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   PRIMARY KEY (`notification_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.notifications: ~0 rows (approximately)
 
@@ -1441,7 +1441,7 @@ CREATE TABLE IF NOT EXISTS `outcomes_details` (
   KEY `idx_outcomes_details_important` (`is_important`,`is_draft`),
   KEY `idx_outcome_type` (`outcome_type`),
   KEY `idx_type_draft` (`outcome_type`,`is_draft`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.outcomes_details: ~3 rows (approximately)
 REPLACE INTO `outcomes_details` (`detail_id`, `detail_name`, `outcome_type`, `outcome_template_id`, `display_config`, `detail_json`, `is_cumulative`, `is_draft`, `created_at`, `updated_at`, `is_important`) VALUES
@@ -1779,7 +1779,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
   KEY `generated_by` (`generated_by`),
   CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`period_id`) REFERENCES `reporting_periods` (`period_id`),
   CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`generated_by`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=360 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=360 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pcds2030_dashboard.reports: ~24 rows (approximately)
 REPLACE INTO `reports` (`report_id`, `period_id`, `report_name`, `description`, `pdf_path`, `pptx_path`, `generated_by`, `generated_at`, `is_public`) VALUES
