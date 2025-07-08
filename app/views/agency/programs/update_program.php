@@ -124,34 +124,8 @@ if (isset($program['owner_agency_id']) && $_SESSION['user_id'] != $program['owne
 
 // Helper function to check if a field is editable for assigned programs
 function is_editable($field) {
-    global $program, $is_draft, $current_submission;
-    // Allow focal users to edit any field
-    if (is_focal_user()) {
-        return true;
-    }
-    // If program has a finalized submission, nothing is editable unless reopened by admin
-    if (isset($current_submission) && 
-        !empty($current_submission) && 
-        (!isset($current_submission['is_draft']) || $current_submission['is_draft'] == 0)) {
-        return false;
-    }
-    
-    // If not an assigned program, all fields are editable
-    if (!isset($program['is_assigned']) || !$program['is_assigned']) {
-        return true;
-    }
-    
-    // Otherwise, check edit permissions
-    if (!isset($program['edit_permissions'])) {
-        return true; // Default to editable if no specific permissions
-    }
-    
-    $permissions = json_decode($program['edit_permissions'], true);
-    
-    // Check if field is in the editable permissions array
-    return isset($permissions['edit_permissions']) && 
-           is_array($permissions['edit_permissions']) && 
-           in_array($field, $permissions['edit_permissions']);
+    // Allow all users to edit all fields
+    return true;
 }
 
 // Helper function to get field value from POST, default, or content
@@ -556,61 +530,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
-              // 1. Update program basic information (if allowed)
-            if (is_editable('program_name') || is_editable('start_date') || is_editable('end_date')) {
-                $update_fields = [];
-                $update_params = [];
-                $param_types = '';
-                
-                if (is_editable('program_name') && !empty($program_name)) {
-                    $update_fields[] = "program_name = ?";
-                    $update_params[] = $program_name;
-                    $param_types .= 's';
-                }
-                
-                // Always allow editing program_number (it's optional)
-                $update_fields[] = "program_number = ?";
-                $update_params[] = $program_number;
+              // 1. Update program basic information (now always allowed)
+            $update_fields = [];
+            $update_params = [];
+            $param_types = '';
+            
+            if (!empty($program_name)) {
+                $update_fields[] = "program_name = ?";
+                $update_params[] = $program_name;
                 $param_types .= 's';
-                
-                if (is_editable('start_date')) {
-                    $update_fields[] = "start_date = ?";
-                    $update_params[] = $start_date;
-                    $param_types .= 's';
-                }
-                  if (is_editable('end_date')) {
-                    $update_fields[] = "end_date = ?";
-                    $update_params[] = $end_date;
-                    $param_types .= 's';
-                }
-                
-                // Always allow editing initiative_id
-                $update_fields[] = "initiative_id = ?";
-                $update_params[] = $initiative_id;
+            }
+            
+            // Always allow editing program_number (it's optional)
+            $update_fields[] = "program_number = ?";
+            $update_params[] = $program_number;
+            $param_types .= 's';
+            
+            $update_fields[] = "start_date = ?";
+            $update_params[] = $start_date;
+            $param_types .= 's';
+            
+            $update_fields[] = "end_date = ?";
+            $update_params[] = $end_date;
+            $param_types .= 's';
+            
+            // Always allow editing initiative_id
+            $update_fields[] = "initiative_id = ?";
+            $update_params[] = $initiative_id;
+            $param_types .= 'i';
+            
+            // Add status_indicator field
+            $update_fields[] = "status_indicator = ?";
+            $update_params[] = $status_indicator;
+            $param_types .= 's';
+            
+            // Add hold_point field
+            $update_fields[] = "hold_point = ?";
+            $update_params[] = $hold_point_post;
+            $param_types .= 's';
+            
+            if (!empty($update_fields)) {
+                $update_fields[] = "updated_at = NOW()";
+                $update_params[] = $program_id;
                 $param_types .= 'i';
                 
-                // Add status_indicator field
-                $update_fields[] = "status_indicator = ?";
-                $update_params[] = $status_indicator;
-                $param_types .= 's';
+                $program_query = "UPDATE programs SET " . implode(', ', $update_fields) . " WHERE program_id = ?";
+                $program_stmt = $conn->prepare($program_query);
+                $program_stmt->bind_param($param_types, ...$update_params);
                 
-                // Add hold_point field
-                $update_fields[] = "hold_point = ?";
-                $update_params[] = $hold_point_post;
-                $param_types .= 's';
-                
-                if (!empty($update_fields)) {
-                    $update_fields[] = "updated_at = NOW()";
-                    $update_params[] = $program_id;
-                    $param_types .= 'i';
-                    
-                    $program_query = "UPDATE programs SET " . implode(', ', $update_fields) . " WHERE program_id = ?";
-                    $program_stmt = $conn->prepare($program_query);
-                    $program_stmt->bind_param($param_types, ...$update_params);
-                    
-                    if (!$program_stmt->execute()) {
-                        throw new Exception('Failed to update program: ' . $program_stmt->error);
-                    }
+                if (!$program_stmt->execute()) {
+                    throw new Exception('Failed to update program: ' . $program_stmt->error);
                 }
             }              // 2. Handle program submission data
             $content_data = [
@@ -1045,11 +1014,7 @@ if (isset($_SESSION['message'])): ?>
                             <div class="mb-3">
                                 <label for="program_name" class="form-label">Program Name *</label>
                                 <input type="text" class="form-control" id="program_name" name="program_name" required
-                                        value="<?php echo htmlspecialchars($program['program_name']); ?>"
-                                        <?php echo (!is_editable('program_name')) ? 'readonly' : ''; ?>>
-                                <?php if ($program['is_assigned'] && !is_editable('program_name')): ?>
-                                    <div class="form-text">Program name was set by an administrator and cannot be changed.</div>
-                                <?php endif; ?>
+                                        value="<?php echo htmlspecialchars($program['program_name']); ?>">
                                 
                                 <?php if (isset($program_history['submissions']) && count($program_history['submissions']) > 1): ?>
                                     <?php
@@ -1101,15 +1066,11 @@ if (isset($_SESSION['message'])): ?>
                             <div class="mb-3">
                                 <label for="brief_description" class="form-label">Brief Description</label>
                                 <textarea class="form-control" id="brief_description" name="brief_description" rows="3" 
-                                        placeholder="Provide a short summary of the program"
-                                        <?php echo (!is_editable('brief_description')) ? 'readonly' : ''; ?>><?php echo htmlspecialchars($brief_description); ?></textarea>
+                                        placeholder="Provide a short summary of the program"><?php echo htmlspecialchars($brief_description); ?></textarea>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle me-1"></i>
                                     A brief overview to help identify this program
                                 </div>
-                                <?php if ($program['is_assigned'] && !is_editable('brief_description')): ?>
-                                    <div class="form-text">Brief description was set by an administrator and cannot be changed.</div>
-                                <?php endif; ?>
                                 
                                 <?php if (isset($program_history['submissions']) && count($program_history['submissions']) > 1): ?>
                                     <?php
@@ -1125,20 +1086,12 @@ if (isset($_SESSION['message'])): ?>
                                 <div class="col-md-6">
                                     <label for="start_date" class="form-label">Start Date</label>
                                     <input type="date" class="form-control" id="start_date" name="start_date" 
-                                            value="<?php echo get_field_value('start_date', $program['start_date'] ? date('Y-m-d', strtotime($program['start_date'])) : ''); ?>"
-                                            <?php echo (!is_editable('timeline')) ? 'readonly' : ''; ?>>
-                                    <?php if ($program['is_assigned'] && !is_editable('timeline')): ?>
-                                        <div class="form-text">Start date was set by an administrator and cannot be changed.</div>
-                                    <?php endif; ?>
+                                            value="<?php echo get_field_value('start_date', $program['start_date'] ? date('Y-m-d', strtotime($program['start_date'])) : ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="end_date" class="form-label">End Date</label>
                                     <input type="date" class="form-control" id="end_date" name="end_date" 
-                                            value="<?php echo get_field_value('end_date', $program['end_date'] ? date('Y-m-d', strtotime($program['end_date'])) : ''); ?>"
-                                            <?php echo (!is_editable('timeline')) ? 'readonly' : ''; ?>>
-                                    <?php if ($program['is_assigned'] && !is_editable('timeline')): ?>
-                                        <div class="form-text">End date was set by an administrator and cannot be changed.</div>
-                                    <?php endif; ?>
+                                            value="<?php echo get_field_value('end_date', $program['end_date'] ? date('Y-m-d', strtotime($program['end_date'])) : ''); ?>">
                                 </div>
                             </div>
                             
@@ -1233,7 +1186,8 @@ if (isset($_SESSION['message'])): ?>
                             
                             <div id="targets-container">
                                 <?php 
-                                $canEditTargets = is_editable('targets');
+                                // All users can now edit targets
+                                $canEditTargets = true;
                                 
                                 foreach ($targets as $index => $target): 
                                     $target_number = $target['target_number'] ?? '';
@@ -1262,14 +1216,12 @@ if (isset($_SESSION['message'])): ?>
                                             <label class="form-label">Target Number (Optional)</label>
                                             <input type="text" class="form-control target-number-input" name="target_number[]" 
                                                     value="<?php echo htmlspecialchars($target_number); ?>" 
-                                                    placeholder="e.g., <?php echo htmlspecialchars($program['program_number'] ?? '30.1A'); ?>.1"
-                                                    <?php echo ($canEditTargets) ? '' : 'readonly'; ?>>
+                                                    placeholder="e.g., <?php echo htmlspecialchars($program['program_number'] ?? '30.1A'); ?>.1">
                                             <div class="form-text">Format: {program_number}.{target_counter}</div>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Target Status</label>
-                                            <select class="form-select target-status-select" name="target_status[]" 
-                                                    <?php echo ($canEditTargets) ? '' : 'disabled'; ?>>
+                                            <select class="form-select target-status-select" name="target_status[]">
                                                 <option value="not-started" <?php echo ($target_status === 'not-started') ? 'selected' : ''; ?>>Not Started</option>
                                                 <option value="in-progress" <?php echo ($target_status === 'in-progress') ? 'selected' : ''; ?>>In Progress</option>
                                                 <option value="completed" <?php echo ($target_status === 'completed') ? 'selected' : ''; ?>>Completed</option>
@@ -1283,11 +1235,7 @@ if (isset($_SESSION['message'])): ?>
                                         <label class="form-label target-text-label">Target *</label>
                                         <textarea class="form-control target-input" name="target_text[]" 
                                                 rows="3"
-                                                placeholder="Define a measurable target (e.g., 'Plant 100 trees')"
-                                                <?php echo ($canEditTargets) ? '' : 'readonly'; ?>><?php echo htmlspecialchars($target_text); ?></textarea>
-                                        <?php if (!$canEditTargets && $index === 0): ?>
-                                        <div class="form-text">Targets were set by an administrator and cannot be changed.</div>
-                                        <?php endif; ?>
+                                                placeholder="Define a measurable target (e.g., 'Plant 100 trees')"><?php echo htmlspecialchars($target_text); ?></textarea>
                                     </div>
                                     
                                     <!-- Timeline Row -->
@@ -1295,14 +1243,12 @@ if (isset($_SESSION['message'])): ?>
                                         <div class="col-md-6">
                                             <label class="form-label">Start Date (Optional)</label>
                                             <input type="date" class="form-control target-start-date" name="target_start_date[]" 
-                                                    value="<?php echo $start_date ? date('Y-m-d', strtotime($start_date)) : ''; ?>"
-                                                    <?php echo ($canEditTargets) ? '' : 'readonly'; ?>>
+                                                    value="<?php echo $start_date ? date('Y-m-d', strtotime($start_date)) : ''; ?>">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">End Date (Optional)</label>
                                             <input type="date" class="form-control target-end-date" name="target_end_date[]" 
-                                                    value="<?php echo $end_date ? date('Y-m-d', strtotime($end_date)) : ''; ?>"
-                                                    <?php echo ($canEditTargets) ? '' : 'readonly'; ?>>
+                                                    value="<?php echo $end_date ? date('Y-m-d', strtotime($end_date)) : ''; ?>">
                                         </div>
                                     </div>
                                     
@@ -1316,11 +1262,9 @@ if (isset($_SESSION['message'])): ?>
                                 <?php endforeach; ?>
                             </div>
                             
-                            <?php if ($canEditTargets): ?>
                             <button type="button" id="add-target-btn" class="btn btn-outline-secondary add-target-btn">
                                 <i class="fas fa-plus-circle me-1"></i> Add Another Target
                             </button>
-                            <?php endif; ?>
                         </div>
                     </div>                    <!-- 3. Remarks and Comments Card -->
                     <div class="card shadow-sm mb-4">
@@ -1331,11 +1275,7 @@ if (isset($_SESSION['message'])): ?>
                             <div class="mb-3">
                                 <label for="remarks" class="form-label">Additional Remarks</label>
                                 <textarea class="form-control" id="remarks" name="remarks" rows="4" 
-                                          placeholder="Add any additional remarks, challenges, or observations about this program..."
-                                          <?php echo (is_editable('remarks')) ? '' : 'readonly'; ?>><?php echo htmlspecialchars($remarks); ?></textarea>
-                                <?php if ($program['is_assigned'] && !is_editable('remarks')): ?>
-                                    <div class="form-text">Remarks were set by an administrator and cannot be changed.</div>
-                                <?php endif; ?>
+                                          placeholder="Add any additional remarks, challenges, or observations about this program..."><?php echo htmlspecialchars($remarks); ?></textarea>
                                 
                                 <?php if (isset($program_history['submissions']) && count($program_history['submissions']) > 1): ?>
                                     <?php
@@ -1383,12 +1323,10 @@ if (isset($_SESSION['message'])): ?>
                                                        class="btn btn-sm btn-outline-primary me-2" target="_blank">
                                                         <i class="fas fa-download"></i> Download
                                                     </a>
-                                                    <?php if (is_editable('attachments')): ?>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-attachment-btn" 
-                                                                data-attachment-id="<?php echo $attachment['attachment_id']; ?>">
-                                                            <i class="fas fa-trash"></i> Delete
-                                                        </button>
-                                                    <?php endif; ?>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-attachment-btn" 
+                                                            data-attachment-id="<?php echo $attachment['attachment_id']; ?>">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -1396,7 +1334,6 @@ if (isset($_SESSION['message'])): ?>
                                 </div>
                             <?php endif; ?>
                               <!-- File Upload Section -->
-                            <?php if (is_editable('attachments')): ?>
                                 <div class="upload-section mb-4">
                                     <h6 class="fw-bold mb-3">
                                         <i class="fas fa-paperclip me-2"></i>
@@ -1449,12 +1386,6 @@ if (isset($_SESSION['message'])): ?>
                                         </small>
                                     </div>
                                 </div>
-                            <?php else: ?>
-                                <div class="text-muted">
-                                    <i class="fas fa-lock me-1"></i>
-                                    Attachment management is restricted for this program.
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                               <!-- Form Actions -->
