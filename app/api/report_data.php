@@ -349,7 +349,7 @@ while ($program = $programs_result->fetch_assoc()) {
                 $target_id = count($all_target_texts) + 1;
                 
                 // Check if target filtering is enabled and if this target is selected
-                $program_id_str = strval($submission['program_id']);
+                $program_id_str = strval($program['program_id']);
                 $should_include_target = true;
                 
                 if (!empty($selected_targets) && isset($selected_targets[$program_id_str])) {
@@ -382,7 +382,7 @@ while ($program = $programs_result->fetch_assoc()) {
                         $target_id = count($all_target_texts) + 1;
                         
                         // Check if target filtering is enabled and if this target is selected
-                        $program_id_str = strval($submission['program_id']);
+                        $program_id_str = strval($program['program_id']);
                         $should_include_target = true;
                         
                         if (!empty($selected_targets) && isset($selected_targets[$program_id_str])) {
@@ -401,7 +401,7 @@ while ($program = $programs_result->fetch_assoc()) {
                 $target_id = count($all_target_texts) + 1;
                 
                 // Check if target filtering is enabled and if this target is selected
-                $program_id_str = strval($submission['program_id']);
+                $program_id_str = strval($program['program_id']);
                 $should_include_target = true;
                 
                 if (!empty($selected_targets) && isset($selected_targets[$program_id_str])) {
