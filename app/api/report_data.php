@@ -150,7 +150,7 @@ if (!empty($selected_targets)) {
 // If no period_id provided, use current reporting period
 if (!$period_id) {
     $current_period = get_current_reporting_period();
-    $period_id = $current_period['period_id'] ?? null;
+    $period_id = isset($current_period['period_id']) ? $current_period['period_id'] : null;
 }
 
 // Validate period_id
@@ -365,8 +365,8 @@ while ($program = $programs_result->fetch_assoc()) {
         if (isset($content['targets']) && is_array($content['targets']) && !empty($content['targets'])) {
             // New format with targets array
             foreach ($content['targets'] as $target_index => $t) {
-                $target_text = $t['target_text'] ?? $t['text'] ?? 'No target set';
-                $status_desc = $t['status_description'] ?? 'No status update available';
+                $target_text = isset($t['target_text']) ? $t['target_text'] : (isset($t['text']) ? $t['text'] : 'No target set');
+                $status_desc = isset($t['status_description']) ? $t['status_description'] : 'No status update available';
                 
                 // Calculate target_id using the same logic as get_program_targets.php
                 // This is a sequential counter across all periods for this program
@@ -392,8 +392,8 @@ while ($program = $programs_result->fetch_assoc()) {
             }
         } elseif (isset($content['target'])) {
             // Old format with direct target property
-            $target_text = $content['target'] ?? 'No target set';
-            $status_description = $content['status_text'] ?? 'No status update available';
+            $target_text = isset($content['target']) ? $content['target'] : 'No target set';
+            $status_description = isset($content['status_text']) ? $content['status_text'] : 'No status update available';
             
             // Check if targets are semicolon-separated
             if (strpos($target_text, ';') !== false) {
@@ -534,7 +534,7 @@ while ($program = $programs_result->fetch_assoc()) {
         'status' => $status_text,
         'text_metrics' => $text_metrics,
         'initiative_id' => $program['initiative_id'],
-        'initiative_name' => $program['initiative_name'] ?? 'No Initiative'
+        'initiative_name' => isset($program['initiative_name']) ? $program['initiative_name'] : 'No Initiative'
     ];
     error_log('Program name in API response: ' . $program['program_name']);
 }
@@ -723,9 +723,21 @@ if ($stmt_degraded) {
             } elseif (isset($data_json_degraded['units'])) {
                 // Try to get units from data_json
                 if (is_array($data_json_degraded['units'])) {
-                    $degraded_area_units = $data_json_degraded['units'][$current_year] ?? 
-                                         $data_json_degraded['units'][$previous_year] ?? 
-                                         $data_json_degraded['units'][array_key_first($data_json_degraded['units'])] ?? 'Ha';
+                    $current_year_str = (string)$current_year;
+                    $previous_year_str = (string)$previous_year;
+                    
+                    if (isset($data_json_degraded['units'][$current_year_str])) {
+                        $degraded_area_units = $data_json_degraded['units'][$current_year_str];
+                    } elseif (isset($data_json_degraded['units'][$previous_year_str])) {
+                        $degraded_area_units = $data_json_degraded['units'][$previous_year_str];
+                    } elseif (!empty($data_json_degraded['units'])) {
+                        // Get first key
+                        $unit_keys = array_keys($data_json_degraded['units']);
+                        $first_key = reset($unit_keys);
+                        $degraded_area_units = $data_json_degraded['units'][$first_key];
+                    } else {
+                        $degraded_area_units = 'Ha';
+                    }
                 } else {
                     $degraded_area_units = $data_json_degraded['units'];
                 }
@@ -764,12 +776,24 @@ if ($timber_result->num_rows > 0) {
         $row_config = json_decode($row['row_config'], true);
         $column_config = json_decode($row['column_config'], true);
         
-        error_log("Processing TIMBER EXPORT data structure: " . json_encode([
+        $debug_info = array(
             'has_columns' => isset($data['columns']),
-            'has_data' => isset($data['data']), 
-            'columns' => $data['columns'] ?? null,
-            'data_keys' => isset($data['data']) ? array_keys($data['data']) : null
-        ]));
+            'has_data' => isset($data['data'])
+        );
+        
+        if (isset($data['columns'])) {
+            $debug_info['columns'] = $data['columns'];
+        } else {
+            $debug_info['columns'] = null;
+        }
+        
+        if (isset($data['data'])) {
+            $debug_info['data_keys'] = array_keys($data['data']);
+        } else {
+            $debug_info['data_keys'] = null;
+        }
+        
+        error_log("Processing TIMBER EXPORT data structure: " . json_encode($debug_info));
         
         // Process the standard format: {columns: [years], data: {month: {year: value}}}
         if (isset($data['columns']) && isset($data['data'])) {

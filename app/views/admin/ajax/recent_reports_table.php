@@ -21,9 +21,9 @@ if (!is_admin()) {
 }
 
 // Get any existing parameters
-$search = $_GET['search'] ?? '';
-$page = max(1, intval($_GET['page'] ?? 1));
-$per_page = min(50, max(5, intval($_GET['per_page'] ?? 10)));
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$page = max(1, intval(isset($_GET['page']) ? $_GET['page'] : 1));
+$per_page = min(50, max(5, intval(isset($_GET['per_page']) ? $_GET['per_page'] : 10)));
 
 // Redirect to the new paginated endpoint
 $params = http_build_query([

@@ -75,7 +75,7 @@ require_once PROJECT_ROOT_PATH . 'app/views/layouts/page_header.php';
                                 <td>
                                     <div class="fw-medium"><?php echo htmlspecialchars($report['report_name']); ?></div>
                                 </td>
-                                <td><?php echo htmlspecialchars($report['description'] ?? 'No description available'); ?></td>                                <td>
+                                <td><?php echo htmlspecialchars(isset($report['description']) ? $report['description'] : 'No description available'); ?></td>                                <td>
                                     <span class="badge bg-<?php echo $report['report_type'] === 'pptx' ? 'primary' : 'info'; ?>">
                                         <?php echo strtoupper(htmlspecialchars($report['report_type'])); ?>
                                     </span>

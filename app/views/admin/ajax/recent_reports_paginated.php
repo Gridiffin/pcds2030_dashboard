@@ -22,9 +22,9 @@ if (!is_admin()) {
 }
 
 // Get pagination parameters
-$page = max(1, intval($_GET['page'] ?? 1));
-$per_page = min(50, max(5, intval($_GET['per_page'] ?? 10))); // Min 5, max 50
-$search = trim($_GET['search'] ?? '');
+$page = max(1, intval(isset($_GET['page']) ? $_GET['page'] : 1));
+$per_page = min(50, max(5, intval(isset($_GET['per_page']) ? $_GET['per_page'] : 10))); // Min 5, max 50
+$search = trim(isset($_GET['search']) ? $_GET['search'] : '');
 
 // Calculate offset
 $offset = ($page - 1) * $per_page;
@@ -145,7 +145,7 @@ try {
     $total_pages = ceil($total_reports / $per_page);
     
     // Determine response format
-    $format = $_GET['format'] ?? 'html';
+    $format = isset($_GET['format']) ? $_GET['format'] : 'html';
     
     if ($format === 'json') {
         // Return JSON response for AJAX calls
@@ -338,7 +338,7 @@ try {
 } catch (Exception $e) {
     error_log("Error in recent_reports_paginated.php: " . $e->getMessage());
     
-    if (($_GET['format'] ?? 'html') === 'json') {
+    if ((isset($_GET['format']) ? $_GET['format'] : 'html') === 'json') {
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
