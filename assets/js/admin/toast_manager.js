@@ -72,3 +72,9 @@ function ToastManager() {
 
 // Make the toast manager globally available
 window.ToastManager = ToastManager;
+
+// Create a global showToast function for backward compatibility
+window.showToast = function(title, message, type = 'info', duration = 5000) {
+    const toastManager = ToastManager();
+    return toastManager.show(title, message, type, duration);
+};

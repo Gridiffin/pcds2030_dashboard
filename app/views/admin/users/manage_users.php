@@ -21,8 +21,8 @@ if (!is_admin()) {
 
 // AJAX Table Request Handler
 if (isset($_GET['ajax_table']) && $_GET['ajax_table'] == '1') {
-    // Get all users and separate them by role
-    $all_users = get_all_users(); // Ensure this function is accessible or defined
+    // Get all users and separate them by role (include inactive users)
+    $all_users = get_all_users(true); // Include inactive users for display
     $admin_users = array_filter($all_users, function($user) {
         return $user['role'] === 'admin';
     });
@@ -203,6 +203,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = [];
         
         switch ($_POST['action']) {
+            case 'check_user_references':
+                $references = check_user_references($_POST['user_id']);
+                header('Content-Type: application/json');
+                echo json_encode($references);
+                exit;
+                
             case 'add_user':
                 $result = add_user($_POST);
                 if (isset($result['success'])) {
@@ -265,17 +271,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($is_ajax) {
             header('Content-Type: application/json');
             if ($message_type === 'success') {
-                echo json_encode(['success' => true, 'message' => $message]);
+                $response = ['success' => true, 'message' => $message];
+                if (isset($result['action'])) {
+                    $response['action'] = $result['action'];
+                }
+                echo json_encode($response);
             } else {
-                echo json_encode(['error' => $message]);
+                $response = ['error' => $message];
+                if (isset($result['has_references'])) {
+                    $response['has_references'] = $result['has_references'];
+                    $response['reference_details'] = $result['reference_details'] ?? [];
+                    $response['suggest_soft_delete'] = $result['suggest_soft_delete'] ?? false;
+                }
+                echo json_encode($response);
             }
             exit;
         }
     }
 }
 
-// Get all users and separate them by role
-$all_users = get_all_users();
+// Get all users and separate them by role (include inactive users to show them differently)
+$all_users = get_all_users(true); // Include inactive users
 $admin_users = array_filter($all_users, function($user) {
     return $user['role'] === 'admin';
 });
