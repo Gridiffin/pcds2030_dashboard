@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $reportId = 0;
 
 // Check if it's JSON data
-$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+$contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
 if (strpos($contentType, 'application/json') !== false) {
     // Handle JSON data
     $jsonInput = file_get_contents('php://input');

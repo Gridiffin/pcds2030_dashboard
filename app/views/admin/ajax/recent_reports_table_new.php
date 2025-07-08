@@ -78,7 +78,7 @@ function formatPeriod($report) {
                         </td>
                         <td>
                             <small class="text-muted">
-                                <?php echo htmlspecialchars($report['username'] ?? 'Unknown'); ?>
+                                <?php echo htmlspecialchars(isset($report['username']) ? $report['username'] : 'Unknown'); ?>
                             </small>
                         </td>
                         <td>

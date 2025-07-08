@@ -65,8 +65,8 @@ try {
     // Get form data
     $period_id = isset($_POST['period_id']) ? intval($_POST['period_id']) : null;
     $sector_id = isset($_POST['sector_id']) ? intval($_POST['sector_id']) : null;
-    $selected_programs = isset($_POST['selected_programs']) ? $_POST['selected_programs'] : [];
-    $selected_targets = isset($_POST['selected_targets']) ? $_POST['selected_targets'] : [];
+    $selected_programs = isset($_POST['selected_programs']) ? $_POST['selected_programs'] : array();
+    $selected_targets = isset($_POST['selected_targets']) ? $_POST['selected_targets'] : array();
 
     // Validate required fields
     if (!$period_id || !$sector_id) {
@@ -127,7 +127,7 @@ try {
     $data = json_decode($report_data, true);
     
     if (!$data || !isset($data['success']) || !$data['success']) {
-        throw new Exception('Report data API returned an error: ' . ($data['error'] ?? 'Unknown error'));
+        throw new Exception('Report data API returned an error: ' . (isset($data['error']) ? $data['error'] : 'Unknown error'));
     }
 
     // If target filtering is enabled, modify the report data to include only selected targets
@@ -137,7 +137,7 @@ try {
 
     // Log audit trail
     log_audit_action(
-        $_SESSION['user_id'] ?? 0,
+        isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0,
         'report_generated',
         'reports',
         null,

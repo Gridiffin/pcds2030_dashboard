@@ -164,7 +164,7 @@ if (!move_uploaded_file($uploaded_file['tmp_name'], $filepath)) {
 }
 
 // Record in database
-$user_id = $_SESSION['user_id'] ?? 0;
+$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 $pptx_path = 'app/reports/pptx/' . $filename; // Relative path from project root for database storage
 
 // Prepare SQL to insert record
