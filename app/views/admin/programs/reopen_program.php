@@ -112,7 +112,7 @@ function get_program_owner_id($program_id) {
 $pageTitle = 'Reopen Program Submission';
 
 // Include header
-require_once '../layouts/header.php';
+require_once '../../layouts/header.php';
 
 // Configure the modern page header
 $header_config = [
@@ -188,6 +188,6 @@ require_once '../../layouts/page_header.php';
 
 <?php
 // Include footer
-require_once '../layouts/footer.php';
+require_once '../../layouts/footer.php';
 ?>
 
