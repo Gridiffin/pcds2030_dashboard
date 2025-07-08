@@ -1,4 +1,28 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log');
+
+set_exception_handler(function($e) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+    exit;
+});
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'error' => "$errstr in $errfile on line $errline"
+    ]);
+    exit;
+});
+
 /**
  * Report Data API Endpoint
  * 
@@ -804,7 +828,14 @@ if ($timber_result->num_rows > 0) {
             } else {
                 // Try the alternative structure where column names contain "timber export"
                 foreach ($data['columns'] as $column) {
-                    if (stripos($column, 'timber export') !== false || stripos($column, 'export value') !== false) {
+                    // Patch: Ensure $column is a string before using stripos
+                    if (is_array($column)) {
+                        // Convert array to string for search, or skip if not meaningful
+                        $column_str = implode(' ', $column);
+                    } else {
+                        $column_str = $column;
+                    }
+                    if (stripos($column_str, 'timber export') !== false || stripos($column_str, 'export value') !== false) {
                         // This column contains timber export data
                         foreach ($data['data'] as $month => $values) {
                             if (isset($values[$column]) && is_numeric($values[$column])) {
@@ -953,5 +984,17 @@ ob_end_clean();
 // Set content type header and output JSON
 header('Content-Type: application/json');
 echo json_encode($report_data, JSON_PRETTY_PRINT);
+
+// Add a shutdown handler to always return JSON on fatal error
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
+        echo json_encode(['error' => 'Fatal error: ' . $error['message']]);
+        exit;
+    }
+});
 exit;
 ?>

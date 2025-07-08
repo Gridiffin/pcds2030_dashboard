@@ -8,12 +8,32 @@
  * Only admin users are allowed to access this endpoint.
  */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php-error.log');
+
+set_exception_handler(function($e) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+    exit;
+});
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'error' => "$errstr in $errfile on line $errline"
+    ]);
+    exit;
+});
+
 // Suppress any output that might break JSON
 ob_start();
-
-// Ensure no error output interferes with JSON response
-ini_set('display_errors', 0);
-error_reporting(0);
 
 // Include necessary files
 require_once dirname(__DIR__) . '/config/config.php';

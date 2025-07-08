@@ -1,0 +1,36 @@
+[08-Jul-2025 07:06:08 UTC] Half Yearly 1 (2025) selected: Including period_ids 11, 1, 2
+[08-Jul-2025 07:06:08 UTC] API parameters - period_ids: 11,1,2, sector_id: 1
+[08-Jul-2025 07:06:08 UTC] Fixed duplicate submission query - using MAX(submission_id) for tie-breaking
+[08-Jul-2025 07:06:08 UTC] Program orders provided: {"200":1}
+[08-Jul-2025 07:06:08 UTC] Selected program IDs raw: 200
+[08-Jul-2025 07:06:08 UTC] Filtering by 1 selected programs
+[08-Jul-2025 07:06:08 UTC] Fetching programs for sector_id: 1 and period_id: 11
+[08-Jul-2025 07:06:08 UTC] Using custom order by clause with 1 valid program orders
+[08-Jul-2025 07:06:08 UTC] Query returned 1 programs
+[08-Jul-2025 07:06:08 UTC] Program 200: Processed Q2 with 1 targets
+[08-Jul-2025 07:06:08 UTC] Program name in API response: 3. 5 . System Tagang
+[08-Jul-2025 07:06:08 UTC] Processing TIMBER EXPORT data structure: {"has_columns":true,"has_data":true,"columns":["2022","2023","2024","2025","2026"],"data_keys":["January","February","March","April","May","June","July","August","September","October","November","December"]}
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 0: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 0: 276004972.69
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 1: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 1: 191530929.47
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 2: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 2: 214907671.7
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 3: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 3: 232014272.14
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 4: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 4: 324627750.87
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 5: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 5: 212303812.34
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 6: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 6: 274788036.68
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 7: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 7: 210420404.31
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 8: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 8: 191837139
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 9: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 9: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 10: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 10: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 11: 0
+[08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 11: 0
