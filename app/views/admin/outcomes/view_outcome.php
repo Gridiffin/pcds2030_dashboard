@@ -232,7 +232,7 @@ require_once '../../layouts/page_header.php';
                                         <?php foreach ($columns as $column): ?>
                                             <td class="text-end">
                                                 <?php 
-                                                $value = $data[$row_label][$column['id']] ?? 0;
+                                                $value = isset($data[$row_label]) && is_array($data[$row_label]) ? ($data[$row_label][$column['id']] ?? null) : null;
                                                 // Handle empty strings and non-numeric values safely
                                                 if (is_numeric($value) && $value !== '') {
                                                     echo number_format((float)$value, 2);
@@ -253,7 +253,7 @@ require_once '../../layouts/page_header.php';
                                             <?php
                                             $total = 0;
                                             foreach ($row_labels as $row_label) {
-                                                $cell_value = $data[$row_label][$column['id']] ?? 0;
+                                                $cell_value = isset($data[$row_label]) && is_array($data[$row_label]) ? ($data[$row_label][$column['id']] ?? null) : null;
                                                 // Only add numeric values to total
                                                 if (is_numeric($cell_value) && $cell_value !== '') {
                                                     $total += (float)$cell_value;
@@ -292,7 +292,7 @@ require_once '../../layouts/page_header.php';
                                         </td>
                                         <?php foreach ($columns as $col_idx => $column): ?>
                                             <td class="text-end">
-                                                <?= isset($row_data['metrics'][$col_idx]) && $row_data['metrics'][$col_idx] !== null && $row_data['metrics'][$col_idx] !== '' ? number_format((float)$row_data['metrics'][$col_idx], 2) : '—' ?>
+                                                <?= isset($row_data['metrics'][$col_idx]) && is_array($row_data['metrics']) && isset($row_data['metrics'][$col_idx]) && $row_data['metrics'][$col_idx] !== null && $row_data['metrics'][$col_idx] !== '' ? number_format((float)$row_data['metrics'][$col_idx], 2) : '—' ?>
                                             </td>
                                         <?php endforeach; ?>
                                     </tr>
@@ -304,7 +304,7 @@ require_once '../../layouts/page_header.php';
                                     <?php foreach ($columns as $col_idx => $column): 
                                         $total = 0;
                                         foreach ($table_data as $row_data) {
-                                            if (isset($row_data['metrics'][$col_idx]) && is_numeric($row_data['metrics'][$col_idx])) {
+                                            if (isset($row_data['metrics'][$col_idx]) && is_array($row_data['metrics']) && isset($row_data['metrics'][$col_idx]) && is_numeric($row_data['metrics'][$col_idx])) {
                                                 $total += (float)$row_data['metrics'][$col_idx];
                                             }
                                         }
@@ -681,6 +681,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Bootstrap JS Bundle (add before custom scripts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
