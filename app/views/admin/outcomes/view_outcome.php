@@ -161,7 +161,7 @@ require_once '../../layouts/page_header.php';
     <div class="card mb-4 admin-card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="card-title m-0">
-                <i class="fas fa-bullseye me-2"></i><?= htmlspecialchars($table_name) ?>
+                <i class="fas fa-bullseye me-2"></i><?= is_array($table_name) ? implode(', ', $table_name) : htmlspecialchars($table_name) ?>
             </h5>
         </div>        <!-- Tab Navigation -->
         <ul class="nav nav-tabs" id="outcomeDetailTabs" role="tablist">
@@ -192,7 +192,7 @@ require_once '../../layouts/page_header.php';
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Outcome ID:</strong> <?= $metric_id ?></p>
+                            <p><strong>Outcome ID:</strong> <?= is_array($metric_id) ? implode(', ', $metric_id) : htmlspecialchars($metric_id) ?></p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Created:</strong> <?= $created_at->format('F j, Y, g:i A') ?></p>
@@ -202,7 +202,7 @@ require_once '../../layouts/page_header.php';
                             $submitted_by = $outcome_details['submitted_by_username'] ?? null;
                             if (!empty($submitted_by)): 
                             ?>
-                                <p><strong>Submitted By:</strong> <?= htmlspecialchars($submitted_by) ?></p>
+                                <p><strong>Submitted By:</strong> <?= is_array($submitted_by) ? implode(', ', $submitted_by) : htmlspecialchars($submitted_by) ?></p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -215,9 +215,9 @@ require_once '../../layouts/page_header.php';
                                     <th style="width: 150px;">Row</th>
                                     <?php foreach ($columns as $column): ?>
                                         <th class="text-center">
-                                            <?= htmlspecialchars($column['label']) ?>
+                                            <?= is_array($column['label']) ? implode(', ', $column['label']) : htmlspecialchars($column['label']) ?>
                                             <?php if (!empty($column['unit'])): ?>
-                                                <span class="text-muted small">(<?= htmlspecialchars($column['unit']) ?>)</span>
+                                                <span class="text-muted small">(<?= is_array($column['unit']) ? implode(', ', $column['unit']) : htmlspecialchars($column['unit']) ?>)</span>
                                             <?php endif; ?>
                                         </th>
                                     <?php endforeach; ?>
@@ -227,7 +227,7 @@ require_once '../../layouts/page_header.php';
                                 <?php foreach ($row_labels as $row_label): ?>
                                     <tr>
                                         <td>
-                                            <span class="month-badge"><?= htmlspecialchars($row_label) ?></span>
+                                            <span class="month-badge"><?= is_array($row_label) ? implode(', ', $row_label) : htmlspecialchars($row_label) ?></span>
                                         </td>
                                         <?php foreach ($columns as $column): ?>
                                             <td class="text-end">
@@ -276,9 +276,9 @@ require_once '../../layouts/page_header.php';
                                     <th style="width: 150px;">Month</th>
                                     <?php foreach ($columns as $column): ?>
                                         <th>
-                                            <?= htmlspecialchars($column['label']) ?>
+                                            <?= is_array($column['label']) ? implode(', ', $column['label']) : htmlspecialchars($column['label']) ?>
                                             <?php if (!empty($column['unit'])): ?>
-                                                <span class="text-muted small">(<?= htmlspecialchars($column['unit']) ?>)</span>
+                                                <span class="text-muted small">(<?= is_array($column['unit']) ? implode(', ', $column['unit']) : htmlspecialchars($column['unit']) ?>)</span>
                                             <?php endif; ?>
                                         </th>
                                     <?php endforeach; ?>
@@ -288,7 +288,7 @@ require_once '../../layouts/page_header.php';
                                 <?php foreach ($table_data as $row_data): ?>
                                     <tr>
                                         <td>
-                                            <span class="month-badge"><?= htmlspecialchars($row_data['row']['label']) ?></span>
+                                            <span class="month-badge"><?= is_array($row_data['row']['label']) ? implode(', ', $row_data['row']['label']) : htmlspecialchars($row_data['row']['label']) ?></span>
                                         </td>
                                         <?php foreach ($columns as $col_idx => $column): ?>
                                             <td class="text-end">
@@ -340,9 +340,9 @@ require_once '../../layouts/page_header.php';
                                     <tbody>
                                         <?php foreach ($rows as $row): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($row['label']) ?></td>
+                                            <td><?= is_array($row['label']) ? implode(', ', $row['label']) : htmlspecialchars($row['label']) ?></td>
                                             <td>
-                                                <span class="badge bg-secondary"><?= ucfirst($row['type']) ?></span>
+                                                <span class="badge bg-secondary"><?= is_array($row['type']) ? implode(', ', $row['type']) : htmlspecialchars($row['type']) ?></span>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -366,11 +366,11 @@ require_once '../../layouts/page_header.php';
                                     <tbody>
                                         <?php foreach ($columns as $column): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($column['label']) ?></td>
+                                            <td><?= is_array($column['label']) ? implode(', ', $column['label']) : htmlspecialchars($column['label']) ?></td>
                                             <td>
-                                                <span class="badge bg-info"><?= ucfirst($column['type']) ?></span>
+                                                <span class="badge bg-info"><?= is_array($column['type']) ? implode(', ', $column['type']) : htmlspecialchars($column['type']) ?></span>
                                             </td>
-                                            <td><?= htmlspecialchars($column['unit'] ?? '') ?></td>
+                                            <td><?= is_array($column['unit']) ? implode(', ', $column['unit']) : htmlspecialchars($column['unit'] ?? '') ?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -401,8 +401,8 @@ require_once '../../layouts/page_header.php';
                                 <label for="chartColumnSelect" class="form-label">Select Data Series</label>
                                 <select class="form-select" id="chartColumnSelect" multiple>
                                     <?php foreach ($columns as $column): ?>
-                                        <option value="<?= htmlspecialchars($column['id']) ?>" selected>
-                                            <?= htmlspecialchars($column['label']) ?>
+                                        <option value="<?= is_array($column['id']) ? implode(', ', $column['id']) : htmlspecialchars($column['id']) ?>" selected>
+                                            <?= is_array($column['label']) ? implode(', ', $column['label']) : htmlspecialchars($column['label']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
