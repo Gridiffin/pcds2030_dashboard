@@ -429,37 +429,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
             
-            // Before calling is_program_number_available
-            if (empty($program_id) || $program_id == 0) {
-                // Try to get from $program['program_id']
-                if (isset($program['program_id']) && $program['program_id'] > 0) {
-                    $program_id = $program['program_id'];
-                } elseif (isset($_GET['id']) && intval($_GET['id']) > 0) {
-                    $program_id = intval($_GET['id']);
-                }
-            }
-            // Debug log
-            error_log("[DEBUG] Checking program number availability: program_number={$program_number}, program_id={$program_id}");
-            if (!is_program_number_available($program_number, $program_id)) {
-                $_SESSION['message'] = 'Program number is already in use.';
-                $_SESSION['message_type'] = 'danger';
-                header('Location: update_program.php?id=' . $program_id);
-                exit;
-            }
-            
             // Additional validation for hierarchical format if initiative is linked
             if ($program_number && $initiative_id) {
                 $format_validation = validate_program_number_format($program_number, $initiative_id);
                 if (!$format_validation['valid']) {
                     $_SESSION['message'] = $format_validation['message'];
-                    $_SESSION['message_type'] = 'danger';
-                    header('Location: update_program.php?id=' . $program_id);
-                    exit;
-                }
-                
-                // Check if number is already in use (excluding current program)
-                if (!is_program_number_available($program_number, $program_id)) {
-                    $_SESSION['message'] = 'Program number is already in use.';
                     $_SESSION['message_type'] = 'danger';
                     header('Location: update_program.php?id=' . $program_id);
                     exit;
