@@ -34,16 +34,20 @@ function get_all_agency_groups(mysqli $conn): array {
 /**
  * Get all users in the system
  * 
+ * @param bool $include_inactive Include inactive users in results
  * @return array List of all users with their details
  */
-function get_all_users() {
+function get_all_users($include_inactive = false) {
     global $conn;
+    
+    $where_clause = $include_inactive ? "" : "WHERE u.is_active = 1";
     
     $query = "SELECT u.*, s.sector_name, ag.group_name 
               FROM users u 
               LEFT JOIN sectors s ON u.sector_id = s.sector_id
               LEFT JOIN agency_group ag ON u.agency_group_id = ag.agency_group_id
-              ORDER BY u.username ASC";
+              $where_clause
+              ORDER BY u.is_active DESC, u.username ASC";
               
     $result = $conn->query($query);
     
@@ -398,12 +402,75 @@ function update_user($data) {
 }
 
 /**
- * Delete a user
+ * Check if user has foreign key references that would prevent deletion
+ * 
+ * @param int $user_id User ID to check
+ * @return array Array with 'has_references' boolean and 'details' array
+ */
+function check_user_references($user_id) {
+    global $conn;
+    
+    $user_id = intval($user_id);
+    $references = [];
+    
+    // Get user's agency_group_id
+    $user_query = "SELECT agency_group_id, username FROM users WHERE user_id = ?";
+    $stmt = $conn->prepare($user_query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user_result = $stmt->get_result();
+    
+    if ($user_result->num_rows === 0) {
+        return ['has_references' => false, 'details' => [], 'error' => 'User not found'];
+    }
+    
+    $user = $user_result->fetch_assoc();
+    $agency_group_id = $user['agency_group_id'];
+    
+    // Check programs that reference this user's agency_group_id
+    $program_check = "SELECT COUNT(*) as count FROM programs WHERE agency_group = ?";
+    $stmt = $conn->prepare($program_check);
+    $stmt->bind_param("i", $agency_group_id);
+    $stmt->execute();
+    $program_result = $stmt->get_result();
+    $program_count = $program_result->fetch_assoc()['count'];
+    
+    if ($program_count > 0) {
+        $references[] = [
+            'table' => 'programs',
+            'column' => 'agency_group',
+            'count' => $program_count,
+            'message' => "Programs using this user's agency group"
+        ];
+    }
+    
+    // Check if this is the only user in the agency group
+    $group_users_check = "SELECT COUNT(*) as count, GROUP_CONCAT(username) as usernames 
+                         FROM users 
+                         WHERE agency_group_id = ? AND user_id != ? AND is_active = 1";
+    $stmt = $conn->prepare($group_users_check);
+    $stmt->bind_param("ii", $agency_group_id, $user_id);
+    $stmt->execute();
+    $group_result = $stmt->get_result();
+    $group_data = $group_result->fetch_assoc();
+    
+    return [
+        'has_references' => !empty($references),
+        'details' => $references,
+        'agency_group_id' => $agency_group_id,
+        'other_users_in_group' => $group_data['count'],
+        'other_usernames' => $group_data['usernames']
+    ];
+}
+
+/**
+ * Delete a user with proper foreign key constraint handling
  * 
  * @param int $user_id User ID to delete
+ * @param bool $force_soft_delete Force soft delete instead of hard delete
  * @return array Result of the operation
  */
-function delete_user($user_id) {
+function delete_user($user_id, $force_soft_delete = false) {
     global $conn;
     
     // Include audit logging functionality
@@ -412,7 +479,7 @@ function delete_user($user_id) {
     $user_id = intval($user_id);
     
     // Verify user exists
-    $check_query = "SELECT username, role FROM users WHERE user_id = ?";
+    $check_query = "SELECT username, role, agency_group_id, is_active FROM users WHERE user_id = ?";
     $stmt = $conn->prepare($check_query);
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -426,19 +493,30 @@ function delete_user($user_id) {
     
     $user = $result->fetch_assoc();
     
-    // Check if user has any programs
-    $program_check = "SELECT COUNT(*) as count FROM programs WHERE owner_agency_id = ?";
-    $stmt = $conn->prepare($program_check);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $program_result = $stmt->get_result();
-    $program_count = $program_result->fetch_assoc()['count'];
-      if ($program_count > 0) {
-        // Log failed deletion attempt - user has associated programs
-        $error_msg = "Cannot delete user '{$user['username']}' because they own $program_count program(s). Reassign these programs first.";
+    // Check for foreign key references
+    $references = check_user_references($user_id);
+    
+    if ($references['has_references'] && !$force_soft_delete) {
+        $reference_details = [];
+        foreach ($references['details'] as $ref) {
+            $reference_details[] = "{$ref['count']} {$ref['message']}";
+        }
+        
+        $error_msg = "Cannot delete user '{$user['username']}' because there are foreign key references: " . 
+                    implode(', ', $reference_details) . ". ";
+        
+        // Suggest alternatives
+        if ($references['other_users_in_group'] > 0) {
+            $error_msg .= "Other users in the same agency group: {$references['other_usernames']}. ";
+        }
+        $error_msg .= "Consider deactivating the user instead or reassigning the programs.";
+        
         log_user_deletion_failed($user_id, $error_msg, $_SESSION['user_id'] ?? 0);
         return [
-            'error' => $error_msg
+            'error' => $error_msg,
+            'has_references' => true,
+            'reference_details' => $references['details'],
+            'suggest_soft_delete' => true
         ];
     }
     
@@ -446,23 +524,37 @@ function delete_user($user_id) {
     $conn->begin_transaction();
     
     try {
-        // Delete the user
-        $delete_query = "DELETE FROM users WHERE user_id = ?";
+        if ($force_soft_delete || $references['has_references']) {
+            // Soft delete: mark user as inactive
+            $delete_query = "UPDATE users SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+            $action_type = 'deactivated';
+        } else {
+            // Hard delete: actually remove the user
+            $delete_query = "DELETE FROM users WHERE user_id = ?";
+            $action_type = 'deleted';
+        }
+        
         $stmt = $conn->prepare($delete_query);
         $stmt->bind_param("i", $user_id);
         
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
         }
-          // Commit transaction
+        
+        // Commit transaction
         $conn->commit();
         
-        // Log successful user deletion
-        log_user_deletion_success($user_id, $user['username'], $user['role'], $_SESSION['user_id'] ?? 0);
+        // Log successful user deletion/deactivation
+        if ($action_type === 'deactivated') {
+            log_user_action($user_id, 'deactivated', "User '{$user['username']}' deactivated due to foreign key references", $_SESSION['user_id'] ?? 0);
+        } else {
+            log_user_deletion_success($user_id, $user['username'], $user['role'], $_SESSION['user_id'] ?? 0);
+        }
         
         return [
             'success' => true,
-            'message' => "User '{$user['username']}' successfully deleted"
+            'action' => $action_type,
+            'message' => "User '{$user['username']}' successfully {$action_type}"
         ];
         
     } catch (Exception $e) {

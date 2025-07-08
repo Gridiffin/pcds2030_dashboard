@@ -373,4 +373,23 @@ function log_user_deletion_failed($target_user_id, $error_reason, $admin_user_id
 
     return log_audit_action('user_deletion', $details, 'failure', $admin_user_id);
 }
+
+/**
+ * Log general user action (deactivation, reactivation, etc.)
+ * 
+ * @param int $target_user_id The ID of the user being acted upon
+ * @param string $action_type The type of action (e.g., 'deactivated', 'reactivated')
+ * @param string $details Additional details about the action
+ * @param int $admin_user_id The ID of the admin performing the action
+ * @return bool True if logged successfully, false otherwise
+ */
+function log_user_action($target_user_id, $action_type, $details, $admin_user_id) {
+    $audit_details = json_encode([
+        'target_user_id' => $target_user_id,
+        'action_type' => $action_type,
+        'details' => $details
+    ], JSON_UNESCAPED_SLASHES);
+
+    return log_audit_action("user_$action_type", $audit_details, 'success', $admin_user_id);
+}
 ?>

@@ -232,10 +232,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message_type = 'danger';
                 }
                 break;            case 'delete_user':
-                // Redirect to process_user.php which handles the actual deletion
-                $_SESSION['user_id_to_delete'] = $_POST['user_id'];
-                header('Location: ../../../handlers/admin/process_user.php?action=delete_user&user_id=' . $_POST['user_id']);
-                exit;
+                $force_soft_delete = isset($_POST['force_soft_delete']) && $_POST['force_soft_delete'] == '1';
+                $result = delete_user($_POST['user_id'], $force_soft_delete);
+                
+                if (isset($result['success'])) {
+                    $message = $result['message'];
+                    $message_type = 'success';
+                    
+                    // Store in session for redirect if not AJAX
+                    if (!$is_ajax) {
+                        $_SESSION['message'] = $message;
+                        $_SESSION['message_type'] = $message_type;
+                        $_SESSION['show_toast_only'] = true; // Use toast for better UX
+                        
+                        // Redirect to clear the form and prevent resubmission
+                        header("Location: " . $_SERVER['PHP_SELF']);
+                        exit;
+                    }
+                } else {
+                    $message = $result['error'] ?? 'Failed to delete user.';
+                    $message_type = 'danger';
+                    
+                    // If it's a foreign key constraint issue, provide more context
+                    if (isset($result['has_references']) && $result['has_references']) {
+                        $result['suggest_alternatives'] = true;
+                    }
+                }
+                break;
         }
         
         // If this was an AJAX request, return JSON response instead of setting message variables
