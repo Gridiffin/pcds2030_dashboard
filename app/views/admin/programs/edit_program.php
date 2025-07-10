@@ -185,10 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // STEP 1: Capture current state before making any changes
             $before_state = get_current_program_state($program_id);
             
-            // Get form data with proper sanitization
-            $program_name = trim($_POST['program_name'] ?? '');
-            $program_number = trim($_POST['program_number'] ?? '');
-            $brief_description = trim($_POST['brief_description'] ?? '');
+            // Get form data with proper sanitization and copy-paste handling
+            $program_name = sanitize_copy_paste_content($_POST['program_name'] ?? '', false);
+            $program_number = sanitize_copy_paste_content($_POST['program_number'] ?? '', false);
+            $brief_description = sanitize_copy_paste_content($_POST['brief_description'] ?? '', true);
             $start_date = !empty($_POST['start_date']) ? $_POST['start_date'] : null;
             $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
             $initiative_id = !empty($_POST['initiative_id']) ? intval($_POST['initiative_id']) : null;
@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sector_id = intval($_POST['sector_id'] ?? 0);
             $is_assigned = isset($_POST['is_assigned']) ? 1 : 0;
             $rating = $_POST['rating'] ?? 'not-started';
-            $remarks = trim($_POST['remarks'] ?? '');
+            $remarks = sanitize_copy_paste_content($_POST['remarks'] ?? '', true);
             $period_id = intval($_POST['period_id'] ?? $selected_period_id);
             $submission_id = intval($_POST['submission_id'] ?? 0);
             $current_user_id = $_SESSION['user_id'];
@@ -262,9 +262,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target_end_dates = $_POST['target_end_date'] ?? [];
                 
                 for ($i = 0; $i < count($target_texts); $i++) {
-                    $target_text = trim($target_texts[$i]);
+                    $target_text = sanitize_copy_paste_content($target_texts[$i], true);
                     if (!empty($target_text)) {
-                        $target_number = trim($target_numbers[$i] ?? '');
+                        $target_number = sanitize_copy_paste_content($target_numbers[$i] ?? '', false);
                         
                         // Validate target number format if provided
                         if (!empty($target_number)) {
@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $targets[] = [
                             'target_number' => $target_number,
                             'target_text' => $target_text,
-                            'status_description' => trim($target_status_descriptions[$i] ?? ''),
+                            'status_description' => sanitize_copy_paste_content($target_status_descriptions[$i] ?? '', true),
                             'target_status' => trim($target_statuses[$i] ?? 'not-started'),
                             'start_date' => $start_date,
                             'end_date' => $end_date

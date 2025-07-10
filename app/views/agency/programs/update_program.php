@@ -373,17 +373,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle save draft functionality - update both program basic info and submission content
             global $conn;
         try {
-            $conn->begin_transaction();            // Get form data
-            $program_name = trim($_POST['program_name'] ?? '');
-            $program_number = trim($_POST['program_number'] ?? '');
-            $brief_description = trim($_POST['brief_description'] ?? '');
+            $conn->begin_transaction();            // Get form data with copy-paste sanitization
+            $program_name = sanitize_copy_paste_content($_POST['program_name'] ?? '', false);
+            $program_number = sanitize_copy_paste_content($_POST['program_number'] ?? '', false);
+            $brief_description = sanitize_copy_paste_content($_POST['brief_description'] ?? '', true);
             $start_date = !empty($_POST['start_date']) ? $_POST['start_date'] : null;
             $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
             $initiative_id = !empty($_POST['initiative_id']) ? intval($_POST['initiative_id']) : null;
             $status_indicator = !empty($_POST['status_indicator']) ? $_POST['status_indicator'] : null;
-            $hold_point_post = isset($_POST['hold_point']) ? json_encode(['is_on_hold' => true, 'reason' => $_POST['hold_reason'] ?? '', 'date_set' => date('Y-m-d H:i:s')]) : null;
+            $hold_point_post = isset($_POST['hold_point']) ? json_encode(['is_on_hold' => true, 'reason' => sanitize_copy_paste_content($_POST['hold_reason'] ?? '', true), 'date_set' => date('Y-m-d H:i:s')]) : null;
             $rating = $_POST['rating'] ?? 'not-started';
-            $remarks = trim($_POST['remarks'] ?? '');
+            $remarks = sanitize_copy_paste_content($_POST['remarks'] ?? '', true);
             $period_id = intval($_POST['period_id'] ?? 0);
             $submission_id = isset($_POST['submission_id']) && !empty($_POST['submission_id']) ? intval($_POST['submission_id']) : null;
             $current_user_id = $_SESSION['user_id'];
@@ -452,9 +452,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("========================");
                 
                 for ($i = 0; $i < count($target_texts); $i++) {
-                    $target_text = trim($target_texts[$i]);
+                    $target_text = sanitize_copy_paste_content($target_texts[$i], true);
                     if (!empty($target_text)) {
-                        $target_number = trim($target_numbers[$i] ?? '');
+                        $target_number = sanitize_copy_paste_content($target_numbers[$i] ?? '', false);
 
                         // ... other validation ...
 
@@ -487,12 +487,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         //     exit;
                         // }
 
-                        // Build the target array (this was missing!)
+                        // Build the target array with sanitized data
                         $targets[] = [
                             'target_number' => $target_number,
                             'target_text' => $target_text,
                             'target_status' => trim($target_statuses[$i] ?? 'not-started'),
-                            'status_description' => trim($target_status_descriptions[$i] ?? ''),
+                            'status_description' => sanitize_copy_paste_content($target_status_descriptions[$i] ?? '', true),
                             'start_date' => !empty($target_start_dates[$i]) ? $target_start_dates[$i] : null,
                             'end_date' => !empty($target_end_dates[$i]) ? $target_end_dates[$i] : null
                         ];

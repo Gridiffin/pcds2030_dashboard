@@ -69,6 +69,114 @@ function sanitize_input($data) {
 }
 
 /**
+ * Enhanced sanitization for copy-pasted content
+ * Handles Unicode normalization, special characters, and formatting issues
+ * @param string $data Input to sanitize
+ * @param bool $preserve_newlines Whether to preserve line breaks
+ * @return string Cleaned input
+ */
+function sanitize_copy_paste_content($data, $preserve_newlines = true) {
+    if (empty($data) || !is_string($data)) {
+        return '';
+    }
+
+    // Step 1: Normalize Unicode characters (if available)
+    if (class_exists('Normalizer')) {
+        $data = Normalizer::normalize($data, Normalizer::FORM_C);
+    }
+
+    // Step 2: Replace smart quotes and similar characters
+    $replacements = [
+        // Smart quotes (using hex codes to avoid syntax issues)
+        "\xe2\x80\x9c" => '"',  // Left double quotation mark
+        "\xe2\x80\x9d" => '"',  // Right double quotation mark
+        "\xe2\x80\x98" => "'",  // Left single quotation mark
+        "\xe2\x80\x99" => "'",  // Right single quotation mark
+        
+        // Em/en dashes
+        "\xe2\x80\x94" => '-',  // Em dash
+        "\xe2\x80\x93" => '-',  // En dash
+        
+        // Various spaces and non-breaking spaces
+        "\xc2\xa0" => ' ',      // Non-breaking space
+        "\xe2\x80\x82" => ' ',  // En space
+        "\xe2\x80\x83" => ' ',  // Em space
+        "\xe2\x80\x89" => ' ',  // Thin space
+        "\xe2\x80\x8b" => '',   // Zero-width space
+        "\xe2\x80\x8c" => '',   // Zero-width non-joiner
+        "\xe2\x80\x8d" => '',   // Zero-width joiner
+        
+        // Other problematic characters
+        "\xe2\x80\xa6" => '...', // Horizontal ellipsis
+        "\xc2\xae" => '(R)',     // Registered trademark
+        "\xc2\xa9" => '(C)',     // Copyright
+        "\xe2\x84\xa2" => '(TM)', // Trademark
+    ];
+    
+    $data = str_replace(array_keys($replacements), array_values($replacements), $data);
+
+    // Step 3: Normalize line breaks
+    if ($preserve_newlines) {
+        // Convert all line break variations to \n
+        $data = preg_replace('/\r\n|\r|\n/', "\n", $data);
+        // Remove excessive line breaks (more than 2 consecutive)
+        $data = preg_replace('/\n{3,}/', "\n\n", $data);
+    } else {
+        // Remove all line breaks
+        $data = preg_replace('/\r\n|\r|\n/', ' ', $data);
+    }
+
+    // Step 4: Clean up whitespace
+    // Remove leading/trailing whitespace from each line
+    if ($preserve_newlines) {
+        $lines = explode("\n", $data);
+        $lines = array_map('trim', $lines);
+        $data = implode("\n", $lines);
+    }
+    
+    // Normalize multiple spaces to single space
+    $data = preg_replace('/[ \t]+/', ' ', $data);
+    
+    // Step 5: Remove control characters except tabs and newlines
+    $data = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $data);
+    
+    // Step 6: Final trim
+    $data = trim($data);
+
+    return $data;
+}
+
+/**
+ * Sanitize program data array with enhanced copy-paste handling
+ * @param array $program_data Program data to sanitize
+ * @return array Sanitized program data
+ */
+function sanitize_program_data($program_data) {
+    if (!is_array($program_data)) {
+        return [];
+    }
+
+    $sanitized = [];
+    
+    // Fields that should preserve newlines
+    $multiline_fields = ['brief_description', 'remarks', 'target_text', 'status_description'];
+    
+    foreach ($program_data as $key => $value) {
+        if (is_string($value)) {
+            $preserve_newlines = in_array($key, $multiline_fields);
+            $sanitized[$key] = sanitize_copy_paste_content($value, $preserve_newlines);
+        } elseif (is_array($value)) {
+            // Handle nested arrays (like targets)
+            $sanitized[$key] = sanitize_program_data($value);
+        } else {
+            $sanitized[$key] = $value;
+        }
+    }
+    
+    return $sanitized;
+}
+
+/**
  * Generate random string
  * @param int $length Length of string
  * @return string Random string

@@ -55,10 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target_text = trim($target_texts[$i] ?? '');
                 if (!empty($target_text)) {
                     $targets[] = [
-                        'target_number' => trim($target_numbers[$i] ?? ''),
-                        'target_text' => $target_text,
+                        'target_number' => sanitize_copy_paste_content($target_numbers[$i] ?? '', false),
+                        'target_text' => sanitize_copy_paste_content($target_text, true),
                         'target_status' => trim($target_statuses[$i] ?? 'not-started'),
-                        'status_description' => trim($target_status_descriptions[$i] ?? ''),
+                        'status_description' => sanitize_copy_paste_content($target_status_descriptions[$i] ?? '', true),
                         'start_date' => !empty($target_start_dates[$i]) ? $target_start_dates[$i] : null,
                         'end_date' => !empty($target_end_dates[$i]) ? $target_end_dates[$i] : null
                     ];
@@ -66,9 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }          $program_data = [
             'program_id' => $_POST['program_id'] ?? 0,
-            'program_name' => $_POST['program_name'] ?? '',
-            'program_number' => $_POST['program_number'] ?? '',
-            'brief_description' => $_POST['brief_description'] ?? '',
+            'program_name' => sanitize_copy_paste_content($_POST['program_name'] ?? '', false),
+            'program_number' => sanitize_copy_paste_content($_POST['program_number'] ?? '', false),
+            'brief_description' => sanitize_copy_paste_content($_POST['brief_description'] ?? '', true),
             'start_date' => $_POST['start_date'] ?? '',
             'end_date' => $_POST['end_date'] ?? '',
             'targets' => $targets,
@@ -95,19 +95,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $target_text = trim($target_texts[$i] ?? '');
             if (!empty($target_text)) {
                 $targets[] = [
-                    'target_number' => trim($target_numbers[$i] ?? ''),
-                    'target_text' => $target_text,
+                    'target_number' => sanitize_copy_paste_content($target_numbers[$i] ?? '', false),
+                    'target_text' => sanitize_copy_paste_content($target_text, true),
                     'target_status' => trim($target_statuses[$i] ?? 'not-started'),
-                    'status_description' => trim($target_status_descriptions[$i] ?? ''),
+                    'status_description' => sanitize_copy_paste_content($target_status_descriptions[$i] ?? '', true),
                     'start_date' => !empty($target_start_dates[$i]) ? $target_start_dates[$i] : null,
                     'end_date' => !empty($target_end_dates[$i]) ? $target_end_dates[$i] : null
                 ];
             }
         }
     }        $program_data = [
-            'program_name' => $_POST['program_name'] ?? '',
-            'program_number' => $_POST['program_number'] ?? '',
-            'brief_description' => $_POST['brief_description'] ?? '',
+            'program_name' => sanitize_copy_paste_content($_POST['program_name'] ?? '', false),
+            'program_number' => sanitize_copy_paste_content($_POST['program_number'] ?? '', false),
+            'brief_description' => sanitize_copy_paste_content($_POST['brief_description'] ?? '', true),
             'start_date' => $_POST['start_date'] ?? '',
             'end_date' => $_POST['end_date'] ?? '',
             'targets' => $targets,

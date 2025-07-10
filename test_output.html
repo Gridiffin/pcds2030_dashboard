@@ -1,0 +1,96 @@
+﻿<h1>Copy-Paste Sanitization Test Results</h1>
+<h3>Test Case: Smart Quotes</h3>
+<p><strong>Original:</strong><br>&quot;Smart quotes&quot; and &#039;single quotes&#039; from Word</p>
+<p><strong>Hex Dump:</strong><br>22536d6172742071756f7465732220616e64202773696e676c652071756f746573272066726f6d20576f7264</p>
+<p><strong>Sanitized:</strong><br>&quot;Smart quotes&quot; and &#039;single quotes&#039; from Word</p>
+<p><strong>Hex Dump:</strong><br>22536d6172742071756f7465732220616e64202773696e676c652071756f746573272066726f6d20576f7264</p>
+<hr>
+<h3>Test Case: Unicode Spaces</h3>
+<p><strong>Original:</strong><br>Regular space non-breaking space en space</p>
+<p><strong>Hex Dump:</strong><br>526567756c6172207370616365c2a06e6f6e2d627265616b696e67207370616365e28082656e207370616365</p>
+<p><strong>Sanitized:</strong><br>Regular space non-breaking space en space</p>
+<p><strong>Hex Dump:</strong><br>526567756c6172207370616365206e6f6e2d627265616b696e6720737061636520656e207370616365</p>
+<hr>
+<h3>Test Case: Em Dash</h3>
+<p><strong>Original:</strong><br>Em dash — and en dash – from documents</p>
+<p><strong>Hex Dump:</strong><br>456d206461736820e2809420616e6420656e206461736820e280932066726f6d20646f63756d656e7473</p>
+<p><strong>Sanitized:</strong><br>Em dash - and en dash - from documents</p>
+<p><strong>Hex Dump:</strong><br>456d2064617368202d20616e6420656e2064617368202d2066726f6d20646f63756d656e7473</p>
+<hr>
+<h3>Test Case: Zero Width</h3>
+<p><strong>Original:</strong><br>Zero width​space and‌zero width‍joiner</p>
+<p><strong>Hex Dump:</strong><br>5a65726f207769647468e2808b737061636520616e64e2808c7a65726f207769647468e2808d6a6f696e6572</p>
+<p><strong>Sanitized:</strong><br>Zero widthspace andzero widthjoiner</p>
+<p><strong>Hex Dump:</strong><br>5a65726f207769647468737061636520616e647a65726f2077696474686a6f696e6572</p>
+<hr>
+<h3>Test Case: Line Breaks</h3>
+<p><strong>Original:</strong><br>Line 1
+Line 2Line 3
+Line 4
+
+
+Too many breaks</p>
+<p><strong>Hex Dump:</strong><br>4c696e6520310d0a4c696e6520320d4c696e6520330a4c696e6520340a0a0a546f6f206d616e7920627265616b73</p>
+<p><strong>Sanitized:</strong><br>Line 1
+Line 2
+Line 3
+Line 4
+
+Too many breaks</p>
+<p><strong>Hex Dump:</strong><br>4c696e6520310a4c696e6520320a4c696e6520330a4c696e6520340a0a546f6f206d616e7920627265616b73</p>
+<hr>
+<h3>Test Case: Ellipsis</h3>
+<p><strong>Original:</strong><br>Ellipsis… character</p>
+<p><strong>Hex Dump:</strong><br>456c6c6970736973e280a620636861726163746572</p>
+<p><strong>Sanitized:</strong><br>Ellipsis... character</p>
+<p><strong>Hex Dump:</strong><br>456c6c69707369732e2e2e20636861726163746572</p>
+<hr>
+<h3>Test Case: Mixed Content</h3>
+<p><strong>Original:</strong><br>&quot;This is a &quot;complex&quot; test with — various issues… including
+non-breaking spaces and​zero-width characters.&quot;</p>
+<p><strong>Hex Dump:</strong><br>225468697320697320612022636f6d706c6578222074657374207769746820e2809420766172696f757320697373756573e280a620696e636c7564696e670d0a6e6f6e2d627265616b696e67c2a073706163657320616e64e2808b7a65726f2d776964746820636861726163746572732e22</p>
+<p><strong>Sanitized:</strong><br>&quot;This is a &quot;complex&quot; test with - various issues... including
+non-breaking spaces andzero-width characters.&quot;</p>
+<p><strong>Hex Dump:</strong><br>225468697320697320612022636f6d706c65782220746573742077697468202d20766172696f7573206973737565732e2e2e20696e636c7564696e670a6e6f6e2d627265616b696e672073706163657320616e647a65726f2d776964746820636861726163746572732e22</p>
+<hr>
+<h2>Program Data Array Sanitization Test</h2>
+<p><strong>Original Program Data:</strong></p>
+<pre>Array
+(
+    [program_name] =&gt; &quot;Smart Program&quot; with — special chars
+    [brief_description] =&gt; This is a program
+with line breaks
+and spaces
+    [targets] =&gt; Array
+        (
+            [0] =&gt; Array
+                (
+                    [target_text] =&gt; Target with &quot;quotes&quot; and — dashes
+                    [status_description] =&gt; Status with​zero-width chars
+                )
+
+        )
+
+)
+</pre>
+<p><strong>Sanitized Program Data:</strong></p>
+<pre>Array
+(
+    [program_name] =&gt; &quot;Smart Program&quot; with - special chars
+    [brief_description] =&gt; This is a program
+with line breaks
+and spaces
+    [targets] =&gt; Array
+        (
+            [0] =&gt; Array
+                (
+                    [target_text] =&gt; Target with &quot;quotes&quot; and - dashes
+                    [status_description] =&gt; Status withzero-width chars
+                )
+
+        )
+
+)
+</pre>
+<p><em>Test completed. You can delete this file after verification.</em></p>
+
