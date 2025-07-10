@@ -1,4 +1,11 @@
 <?php
+// Start output buffering to prevent "headers already sent" errors
+ob_start();
+
+// Disable error output to prevent headers already sent issues
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../../../lib/audit_log.php';
 /**
  * Resubmit Program Submission
@@ -14,7 +21,6 @@ require_once ROOT_PATH . 'app/lib/session.php';
 require_once ROOT_PATH . 'app/lib/functions.php';
 require_once ROOT_PATH . 'app/lib/admins/index.php';
 require_once ROOT_PATH . 'app/lib/admins/statistics.php'; // Contains program functions and log_action
-require_once ROOT_PATH . 'app/lib/audit_log.php';
 require_once ROOT_PATH . 'app/lib/audit_log.php';
 
 // Verify user is an admin
@@ -62,7 +68,9 @@ $stmt = $conn->prepare($sql);
 
 $success = false;
 if ($stmt) {
-    $stmt->bind_param('ii', $program_id, $period_id);    if ($stmt->execute()) {
+    $stmt->bind_param('ii', $program_id, $period_id);
+    
+    if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             $_SESSION['success_message'] = "Program has been successfully re-submitted.";
             $success = true;
@@ -100,19 +108,11 @@ if (function_exists('log_action')) {
     log_action('resubmit_program', "Program ID: $program_id, Period ID: $period_id. Submission resubmitted.", $success);
 }
 
-// Audit log
-$log_data = array(
-    'admin_id' => $_SESSION['admin_id'], // Assuming admin ID is stored in session
-    'action' => 'resubmit_program',
-    'details' => "Program ID: $program_id, Period ID: $period_id",
-    'success' => $success,
-    'timestamp' => date('Y-m-d H:i:s')
-);
-log_audit_action($log_data); // Assuming audit_log is a function that takes an array
-
 // Construct redirect URL
 $redirect_url = 'programs.php?period_id=' . $period_id;
 
+// Clean any output buffer before redirect
+ob_end_clean();
+
 header('Location: ' . $redirect_url);
 exit;
-?>

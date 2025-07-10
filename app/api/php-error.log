@@ -34,3 +34,85 @@
 [08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 10: 0
 [08-Jul-2025 07:06:08 UTC] Set timber data for 2025 month 11: 0
 [08-Jul-2025 07:06:08 UTC] Set timber data for 2024 month 11: 0
+[10-Jul-2025 01:18:34 UTC] Half Yearly 1 (2025) selected: Including period_ids 11, 1, 2
+[10-Jul-2025 01:18:34 UTC] API parameters - period_ids: 11,1,2, sector_id: 1
+[10-Jul-2025 01:18:34 UTC] Fixed duplicate submission query - using MAX(submission_id) for tie-breaking
+[10-Jul-2025 01:18:34 UTC] Program orders provided: {"187":1}
+[10-Jul-2025 01:18:34 UTC] Selected program IDs raw: 187
+[10-Jul-2025 01:18:34 UTC] Filtering by 1 selected programs
+[10-Jul-2025 01:18:34 UTC] Fetching programs for sector_id: 1 and period_id: 11
+[10-Jul-2025 01:18:34 UTC] Using custom order by clause with 1 valid program orders
+[10-Jul-2025 01:18:34 UTC] Query returned 1 programs
+[10-Jul-2025 01:18:35 UTC] Program name in API response: Conservation and Protection of Wetlands and Watershed Within Heart of Borneo Sarawak
+[10-Jul-2025 01:18:35 UTC] Processing TIMBER EXPORT data structure: {"has_columns":true,"has_data":true,"columns":["2022","2023","2024","2025","2026"],"data_keys":["January","February","March","April","May","June","July","August","September","October","November","December"]}
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 0: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 0: 276004972.69
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 1: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 1: 191530929.47
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 2: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 2: 214907671.7
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 3: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 3: 232014272.14
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 4: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 4: 324627750.87
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 5: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 5: 212303812.34
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 6: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 6: 274788036.68
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 7: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 7: 210420404.31
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 8: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 8: 191837139
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 9: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 9: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 10: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 10: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2025 month 11: 0
+[10-Jul-2025 01:18:35 UTC] Set timber data for 2024 month 11: 0
+[10-Jul-2025 01:23:36 UTC] Half Yearly 1 (2025) selected: Including period_ids 11, 1, 2
+[10-Jul-2025 01:23:36 UTC] API parameters - period_ids: 11,1,2, sector_id: 1
+[10-Jul-2025 01:23:36 UTC] Fixed duplicate submission query - using MAX(submission_id) for tie-breaking
+[10-Jul-2025 01:23:36 UTC] Program orders provided: {"176":5,"182":8,"187":3,"189":6,"193":2,"194":9,"195":4,"216":7}
+[10-Jul-2025 01:23:36 UTC] Selected program IDs raw: 193,187,195,176,189,216,182,194
+[10-Jul-2025 01:23:36 UTC] Filtering by 8 selected programs
+[10-Jul-2025 01:23:36 UTC] Fetching programs for sector_id: 1 and period_id: 11
+[10-Jul-2025 01:23:36 UTC] Using custom order by clause with 8 valid program orders
+[10-Jul-2025 01:23:36 UTC] Query returned 8 programs
+[10-Jul-2025 01:23:36 UTC] Program 193: Processed Q2 with 2 targets
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Proposed Implementation of Forest Landscape Restoration Throughout Sarawak
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Conservation and Protection of Wetlands and Watershed Within Heart of Borneo Sarawak
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Quantifying Forest Carbon Stock in Sarawak
+[10-Jul-2025 01:23:36 UTC] Program 176: Processed Q2 with 3 targets
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Bamboo Industry Development
+[10-Jul-2025 01:23:36 UTC] Program 189: Processed Q2 with 4 targets
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Furniture Park
+[10-Jul-2025 01:23:36 UTC] Program 216: Processed Q2 with 0 targets
+[10-Jul-2025 01:23:36 UTC] Program name in API response: 3.2 Management and Strengthening Protection for Selected Totally Protected Areas
+[10-Jul-2025 01:23:36 UTC] Program 182: Processed Q2 with 2 targets
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Research and Development for KURSI PUSAKA in UNIMAS
+[10-Jul-2025 01:23:36 UTC] Program name in API response: Strengthening Forest Enforcement Through Advancing the Technology and Equipments
+[10-Jul-2025 01:23:36 UTC] Processing TIMBER EXPORT data structure: {"has_columns":true,"has_data":true,"columns":["2022","2023","2024","2025","2026"],"data_keys":["January","February","March","April","May","June","July","August","September","October","November","December"]}
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 0: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 0: 276004972.69
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 1: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 1: 191530929.47
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 2: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 2: 214907671.7
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 3: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 3: 232014272.14
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 4: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 4: 324627750.87
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 5: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 5: 212303812.34
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 6: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 6: 274788036.68
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 7: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 7: 210420404.31
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 8: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 8: 191837139
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 9: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 9: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 10: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 10: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2025 month 11: 0
+[10-Jul-2025 01:23:36 UTC] Set timber data for 2024 month 11: 0
